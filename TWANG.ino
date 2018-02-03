@@ -327,7 +327,7 @@ void loadLevel(){
             break;
         case 3:
             // Lava intro
-            spawnLava(400, 490, 2000, 2000, 0, "OFF");
+            spawnLava(400, 490, 2000, 2000, 0, Lava::OFF);
 			spawnEnemy(350, 0, 1, 0);
             spawnPool[0].Spawn(1000, 5500, 3, 0, 0);
             break;
@@ -362,9 +362,9 @@ void loadLevel(){
 			break;
         case 9:
             // Lava run
-            spawnLava(195, 300, 2000, 2000, 0, "OFF");
-            spawnLava(400, 500, 2000, 2000, 0, "OFF");
-            spawnLava(600, 700, 2000, 2000, 0, "OFF");
+            spawnLava(195, 300, 2000, 2000, 0, Lava::OFF);
+            spawnLava(400, 500, 2000, 2000, 0, Lava::OFF);
+            spawnLava(600, 700, 2000, 2000, 0, Lava::OFF);
 
             spawnPool[0].Spawn(1000, 3800, 4, 0, 0);
             break;
@@ -408,7 +408,7 @@ void spawnEnemy(int pos, int dir, int sp, int wobble){
     }
 }
 
-void spawnLava(int left, int right, int ontime, int offtime, int offset, char* state){
+void spawnLava(int left, int right, int ontime, int offtime, int offset, int state){
     for(int i = 0; i<lavaCount; i++){
         if(!lavaPool[i].Alive()){
             lavaPool[i].Spawn(left, right, ontime, offtime, offset, state);
@@ -629,18 +629,18 @@ void tickLava(){
         if(LP.Alive()){
             A = getLED(LP._left);
             B = getLED(LP._right);
-            if(LP._state == "OFF"){
+            if(LP._state == Lava::OFF){
                 if(LP._lastOn + LP._offtime < mm){
-                    LP._state = "ON";
+                    LP._state = Lava::ON;
                     LP._lastOn = mm;
                 }
                 for(p = A; p<= B; p++){
 					flicker = random8(3);
                     leds[p] = CRGB(3+flicker, (3+flicker)/1.5, 0);
                 }
-            }else if(LP._state == "ON"){
+            }else if(LP._state == Lava::ON){
                 if(LP._lastOn + LP._ontime < mm){
-                    LP._state = "OFF";
+                    LP._state = Lava::OFF;
                     LP._lastOn = mm;
                 }
                 for(p = A; p<= B; p++){
@@ -844,7 +844,7 @@ bool inLava(int pos){
     Lava LP;
     for(i = 0; i<lavaCount; i++){
         LP = lavaPool[i];
-        if(LP.Alive() && LP._state == "ON"){
+        if(LP.Alive() && LP._state == Lava::ON){
             if(LP._left < pos && LP._right > pos) return true;
         }
     }

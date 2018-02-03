@@ -3,7 +3,7 @@
 class Lava
 {
   public:
-    void Spawn(int left, int right, int ontime, int offtime, int offset, char* state);
+    void Spawn(int left, int right, int ontime, int offtime, int offset, int state);
     void Kill();
     int Alive();
     int _left;
@@ -12,12 +12,14 @@ class Lava
     int _offtime;
     int _offset;
     long _lastOn;
-    char* _state;
+    int _state;
+    static const int OFF = 0;
+    static const int ON = 1;
   private:
     int _alive;
 };
 
-void Lava::Spawn(int left, int right, int ontime, int offtime, int offset, char* state){
+void Lava::Spawn(int left, int right, int ontime, int offtime, int offset, int state){
     _left = left;
     _right = right;
     _ontime = ontime;
