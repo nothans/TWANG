@@ -23,7 +23,7 @@ int16_t gx, gy, gz;
 // LED setup
 #define NUM_LEDS             300
 #define DATA_PIN             3
-#define CLOCK_PIN            4
+//#define CLOCK_PIN            4
 #define LED_COLOR_ORDER      BGR//GBR
 #define BRIGHTNESS           255
 #define DIRECTION            1     // 0 = right to left, 1 = left to right
@@ -35,7 +35,7 @@ int16_t gx, gy, gz;
 long previousMillis = 0;           // Time of the last redraw
 int levelNumber = 0;
 long lastInputTime = 0;
-#define TIMEOUT              30000
+#define TIMEOUT              20000
 #define LEVEL_COUNT          9
 #define MAX_VOLUME           10
 iSin isin = iSin();
@@ -630,28 +630,53 @@ void updateLives(){
 void screenSaverTick(){
     int n, b, c, i;
     long mm = millis();
-    int mode = (mm/20000)%2;
-    
-    for(i = 0; i<NUM_LEDS; i++){
-        leds[i].nscale8(250);
-    }
-    if(mode == 0){
-        // Marching green <> orange
-        n = (mm/250)%10;
-        b = 10+((sin(mm/500.00)+1)*20.00);
-        c = 20+((sin(mm/5000.00)+1)*33);
-        for(i = 0; i<NUM_LEDS; i++){
-            if(i%10 == n){
-                leds[i] = CHSV( c, 255, 150);
+    long modeDuration = 10000;
+    int modeCount = 2;
+    int mode = (mm/modeDuration)%modeCount;
+    long modeTime = mm%modeDuration;
+
+    switch (mode) {
+        case 2: {
+            // Marching green <> orange
+            for(i = 0; i<NUM_LEDS; i++){
+                leds[i].nscale8(250);
             }
+            n = (mm/250)%10;
+            b = 10+((sin(mm/500.00)+1)*20.00);
+            c = 20+((sin(mm/5000.00)+1)*33);
+            for(i = 0; i<NUM_LEDS; i++){
+                if(i%10 == n){
+                    leds[i] = CHSV( c, 255, 150);
+                }
+            }
+            break;
         }
-    }else if(mode == 1){
-        // Random flashes
-        randomSeed(mm);
-        for(i = 0; i<NUM_LEDS; i++){
-            if(random8(200) == 0){
-                leds[i] = CHSV( 25, 255, 100);
+        case 1: {
+            // Random flashes
+            for(i = 0; i<NUM_LEDS; i++){
+                leds[i].nscale8(250);
             }
+            randomSeed(mm);
+            for(i = 0; i<NUM_LEDS; i++){
+                if(random8(200) == 0){
+                    leds[i] = CHSV( 25, 255, 100);
+                }
+            }
+            break;
+        }
+        case 0: {
+            // beat flashes            
+            randomSeed(mm);            
+            b = mm%600;
+            if (b < 80) {
+                n = 255 - b*3;
+            } else {
+                n = 1;
+            }
+            for(i = 0; i<NUM_LEDS; i++){
+                leds[i] = (random8() <= n) ? CRGB::White : CRGB::Black;
+            }
+            break;
         }
     }
 }
