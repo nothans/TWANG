@@ -7,6 +7,7 @@
 	
 	Updates by B. Dring 1/2018
 	
+	
 
 */
 
@@ -120,27 +121,37 @@ int score = 0;
 
 
 // POOLS
-int lifeLEDs[3] = {7, 6, 5}; // these numbers are Arduino GPIO numbers...this is not used in the B. Dring enclosure design
-Enemy enemyPool[10] = {
+#define LIFE_LEDS 3
+int lifeLEDs[LIFE_LEDS] = {7, 6, 5}; // these numbers are Arduino GPIO numbers...this is not used in the B. Dring enclosure design
+
+#define ENEMY_COUNT 10
+Enemy enemyPool[ENEMY_COUNT] = {
     Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy()
 };
-int const enemyCount = 10;
-Particle particlePool[40] = {
+
+
+#define PARTICLE_COUNT 40
+Particle particlePool[PARTICLE_COUNT] = {
     Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle()
 };
-int const particleCount = 40;
-Spawner spawnPool[2] = {
+
+#define SPAWN_COUNT 2
+Spawner spawnPool[SPAWN_COUNT] = {
     Spawner(), Spawner()
 };
-int const spawnCount = 2;
-Lava lavaPool[4] = {
+
+#define LAVA_COUNT 4
+Lava lavaPool[LAVA_COUNT] = {
     Lava(), Lava(), Lava(), Lava()
 };
-int const lavaCount = 4;
-Conveyor conveyorPool[2] = {
+
+#define CONVEYOR_COUNT 2
+Conveyor conveyorPool[CONVEYOR_COUNT] = {
     Conveyor(), Conveyor()
 };
-int const conveyorCount = 2;
+
+
+
 Boss boss = Boss();
 
 CRGB leds[NUM_LEDS];
@@ -167,7 +178,7 @@ void setup() {
 	
 
     // Life LEDs
-    for(int i = 0; i<3; i++){
+    for(int i = 0; i<LIFE_LEDS; i++){
         pinMode(lifeLEDs[i], OUTPUT);
         digitalWrite(lifeLEDs[i], HIGH);
     }
@@ -398,10 +409,18 @@ void moveBoss(){
     spawnPool[1].Spawn(boss._pos, spawnSpeed, 3, 1, 0);
 }
 
-void spawnEnemy(int pos, int dir, int sp, int wobble){
-    for(int e = 0; e<enemyCount; e++){
+/* ======================== spawn Functions =====================================
+
+   The following spawn functions add items to pools by looking for an unactive
+   item in the pool. You can only add as many as the ..._COUNT. Additonal attemps 
+   to add will be ignored.   
+   
+   ==============================================================================
+*/
+void spawnEnemy(int pos, int dir, int speed, int wobble){
+    for(int e = 0; e<ENEMY_COUNT; e++){  // look for one that is not alive for a place to add one
         if(!enemyPool[e].Alive()){
-            enemyPool[e].Spawn(pos, dir, sp, wobble);
+            enemyPool[e].Spawn(pos, dir, speed, wobble);
             enemyPool[e].playerSide = pos > playerPosition?1:-1;
             return;
         }
@@ -409,7 +428,7 @@ void spawnEnemy(int pos, int dir, int sp, int wobble){
 }
 
 void spawnLava(int left, int right, int ontime, int offtime, int offset, int state){
-    for(int i = 0; i<lavaCount; i++){
+    for(int i = 0; i<LAVA_COUNT; i++){
         if(!lavaPool[i].Alive()){
             lavaPool[i].Spawn(left, right, ontime, offtime, offset, state);
             return;
@@ -418,7 +437,7 @@ void spawnLava(int left, int right, int ontime, int offtime, int offset, int sta
 }
 
 void spawnConveyor(int startPoint, int endPoint, int dir){
-    for(int i = 0; i<conveyorCount; i++){
+    for(int i = 0; i<CONVEYOR_COUNT; i++){
         if(!conveyorPool[i]._alive){
             conveyorPool[i].Spawn(startPoint, endPoint, dir);
             return;
@@ -427,19 +446,19 @@ void spawnConveyor(int startPoint, int endPoint, int dir){
 }
 
 void cleanupLevel(){
-    for(int i = 0; i<enemyCount; i++){
+    for(int i = 0; i<ENEMY_COUNT; i++){
         enemyPool[i].Kill();
     }
-    for(int i = 0; i<particleCount; i++){
+    for(int i = 0; i<PARTICLE_COUNT; i++){
         particlePool[i].Kill();
     }
-    for(int i = 0; i<spawnCount; i++){
+    for(int i = 0; i<SPAWN_COUNT; i++){
         spawnPool[i].Kill();
     }
-    for(int i = 0; i<lavaCount; i++){
+    for(int i = 0; i<LAVA_COUNT; i++){
         lavaPool[i].Kill();
     }
-    for(int i = 0; i<conveyorCount; i++){
+    for(int i = 0; i<CONVEYOR_COUNT; i++){
         conveyorPool[i].Kill();
     }
     boss.Kill();
@@ -483,7 +502,7 @@ void die(){
     }
     else
     {
-      for(int p = 0; p < particleCount; p++){
+      for(int p = 0; p < PARTICLE_COUNT; p++){
           particlePool[p].Spawn(playerPosition);
       }
       stageStartTime = millis();
@@ -537,7 +556,7 @@ void tickStartup(long mm)
 
 
 void tickEnemies(){
-    for(int i = 0; i<enemyCount; i++){
+    for(int i = 0; i<ENEMY_COUNT; i++){
         if(enemyPool[i].Alive()){
             enemyPool[i].Tick();
             // Hit attack?
@@ -610,7 +629,7 @@ void drawExit(){
 
 void tickSpawners(){
     long mm = millis();
-    for(int s = 0; s<spawnCount; s++){
+    for(int s = 0; s<SPAWN_COUNT; s++){
         if(spawnPool[s].Alive() && spawnPool[s]._activate < mm){
             if(spawnPool[s]._lastSpawned + spawnPool[s]._rate < mm || spawnPool[s]._lastSpawned == 0){
                 spawnEnemy(spawnPool[s]._pos, spawnPool[s]._dir, spawnPool[s]._sp, 0);
@@ -624,7 +643,7 @@ void tickLava(){
     int A, B, p, i, brightness, flicker;
     long mm = millis();
     Lava LP;
-    for(i = 0; i<lavaCount; i++){        
+    for(i = 0; i<LAVA_COUNT; i++){        
         LP = lavaPool[i];
         if(LP.Alive()){
             A = getLED(LP._left);
@@ -660,7 +679,7 @@ void tickLava(){
 bool tickParticles(){
     bool stillActive = false;
 	uint8_t brightness;
-    for(int p = 0; p < particleCount; p++){
+    for(int p = 0; p < PARTICLE_COUNT; p++){
         if(particlePool[p].Alive()){
             particlePool[p].Tick(USE_GRAVITY);
 			
@@ -683,7 +702,7 @@ void tickConveyors(){
     long m = 10000+millis();
     playerPositionModifier = 0;
 
-    for(i = 0; i<conveyorCount; i++){
+    for(i = 0; i<CONVEYOR_COUNT; i++){
         if(conveyorPool[i]._alive){
             dir = conveyorPool[i]._dir;
             ss = getLED(conveyorPool[i]._startPoint);
@@ -842,7 +861,7 @@ bool inLava(int pos){
     // Returns if the player is in active lava
     int i;
     Lava LP;
-    for(i = 0; i<lavaCount; i++){
+    for(i = 0; i<LAVA_COUNT; i++){
         LP = lavaPool[i];
         if(LP.Alive() && LP._state == Lava::ON){
             if(LP._left < pos && LP._right > pos) return true;
@@ -853,7 +872,7 @@ bool inLava(int pos){
 
 void updateLives(){
     // Updates the life LEDs to show how many lives the player has left
-    for(int i = 0; i<3; i++){
+    for(int i = 0; i<LIFE_LEDS; i++){
        digitalWrite(lifeLEDs[i], lives>i?HIGH:LOW);
     }
 }
