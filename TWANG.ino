@@ -57,7 +57,7 @@ bool attacking = 0;                // Is the attack in progress?
 
 // PLAYER
 #define MAX_PLAYER_SPEED    10     // Max move speed of the player
-char* stage;                       // what stage the game is at (PLAY/DEAD/WIN/GAMEOVER)
+char* stage;                       // what stage the game is at (PLAY/DEAD/WIN/SCREENSAVER)
 long stageStartTime;               // Stores the time the stage changed for stages that are time based
 int playerPosition;                // Stores the player position
 int playerPositionModifier;        // +/- adjustment to player position
@@ -65,8 +65,11 @@ bool playerAlive;
 long killTime;
 int lives = 3;
 
+int lifeLEDs[3] = {52, 50, 48};
+int startLed = 53;
+int startButton = 51;
+
 // POOLS
-int lifeLEDs[3] = {52, 50, 40};
 Enemy enemyPool[10] = {
     Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy()
 };
@@ -112,8 +115,12 @@ void setup() {
         pinMode(lifeLEDs[i], OUTPUT);
         digitalWrite(lifeLEDs[i], HIGH);
     }
+
+    pinMode(startLed, OUTPUT);
+    digitalWrite(startLed, HIGH);
+    pinMode(startButton, INPUT_PULLUP);
     
-    loadLevel();
+    stage = "SCREENSAVER";
 }
 
 void loop() {
@@ -137,18 +144,20 @@ void loop() {
         
         if(abs(joystickTilt) > JOYSTICK_DEADZONE){
             lastInputTime = mm;
-            if(stage == "SCREENSAVER"){
-                levelNumber = -1;
-                stageStartTime = mm;
-                stage = "WIN";
-            }
         }else{
             if(lastInputTime+TIMEOUT < mm){
                 stage = "SCREENSAVER";
             }
         }
         if(stage == "SCREENSAVER"){
-            screenSaverTick();
+            if (digitalRead(startButton) == LOW) {
+                lastInputTime = mm;
+                levelNumber = -1;
+                stageStartTime = mm;
+                stage = "WIN";
+            } else {
+                screenSaverTick();
+            }
         }else if(stage == "PLAY"){
             // PLAYING
             if(attacking && attackMillis+ATTACK_DURATION < mm) attacking = 0;
@@ -196,23 +205,17 @@ void loop() {
             }
         }else if(stage == "WIN"){
             // LEVEL COMPLETE
-            FastLED.clear();
-            if(stageStartTime+500 > mm){
+            if(stageStartTime+800 > mm){
                 int n = max(map(((mm-stageStartTime)), 0, 500, NUM_LEDS, 0), 0);
                 for(int i = NUM_LEDS; i>= n; i--){
-                    brightness = 255;
-                    leds[i] = CRGB(0, brightness, 0);
+                    leds[i] = CRGB(0, 255, 0);
                 }
                 SFXwin();
-            }else if(stageStartTime+1000 > mm){
-                int n = max(map(((mm-stageStartTime)), 500, 1000, NUM_LEDS, 0), 0);
-                for(int i = 0; i< n; i++){
-                    brightness = 255;
-                    leds[i] = CRGB(0, brightness, 0);
+            }else if(stageStartTime+2500 > mm){
+                for(int i = 0; i< NUM_LEDS; i++){
+                    leds[i].fadeToBlackBy(20);
                 }
                 SFXwin();
-            }else if(stageStartTime+1200 > mm){
-                leds[0] = CRGB(0, 255, 0);
             }else{
                 nextLevel();
             }
@@ -239,11 +242,23 @@ void loop() {
             }else{
                 nextLevel();
             }
-        }else if(stage == "GAMEOVER"){
-            // GAME OVER!
-            FastLED.clear();
-            stageStartTime = 0;
+        } else if(stage == "GAMEOVER"){
+            if(stageStartTime+2000 > mm){
+                SFXdead();
+                int n = constrain(map(((mm-stageStartTime)), 0, 1000, 0, NUM_LEDS), 0, NUM_LEDS);
+                for(int i = 0; i< n; i++){
+                    leds[i] = CRGB::DarkRed;
+                }
+            }else if(stageStartTime+5000 > mm){
+                for(int i = 0; i< NUM_LEDS; i++){
+                    leds[i].fadeToBlackBy(10);
+                }
+            }else{
+                stage = "SCREENSAVER";
+                stageStartTime = 0;
+            }
         }
+
         
         Serial.print(millis()-mm);
         Serial.print(" - ");
@@ -402,23 +417,23 @@ void nextLevel(){
 
 void gameOver(){
     levelNumber = 0;
-    loadLevel();
-}
+    lives = 3;
+    stage = "GAMEOVER";
+} 
 
 void die(){
     playerAlive = 0;
     if(levelNumber > 0) lives --;
     updateLives();
-    if(lives == 0){
-        levelNumber = 0;
-        lives = 3;
-    }
     for(int p = 0; p < particleCount; p++){
         particlePool[p].Spawn(playerPosition);
     }
     stageStartTime = millis();
     stage = "DEAD";
     killTime = millis();
+    if(lives == 0){
+        gameOver();
+    }
 }
 
 // ----------------------------------
@@ -666,15 +681,20 @@ void screenSaverTick(){
         }
         case 0: {
             // beat flashes            
+            for(i = 0; i<NUM_LEDS; i++){
+                leds[i].fadeToBlackBy(128);
+            }            
             randomSeed(mm);            
-            b = mm%600;
-            if (b < 80) {
-                n = 255 - b*3;
+            b = mm%800;
+            if (b < 240) {
+                n = 121 - b/2;
             } else {
                 n = 1;
             }
             for(i = 0; i<NUM_LEDS; i++){
-                leds[i] = (random8() <= n) ? CRGB::White : CRGB::Black;
+                if ((random8() <= n)) {
+                    leds[i] = CRGB::White;
+                }
             }
             break;
         }
