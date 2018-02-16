@@ -151,10 +151,7 @@ void loop() {
         }
         if(stage == "SCREENSAVER"){
             if (digitalRead(startButton) == LOW) {
-                lastInputTime = mm;
-                levelNumber = -1;
-                stageStartTime = mm;
-                stage = "WIN";
+                startGame();
             } else {
                 screenSaverTick();
             }
@@ -201,7 +198,11 @@ void loop() {
             // DEAD
             FastLED.clear();
             if(!tickParticles()){
-                loadLevel();
+                if(lives == 0){
+                    gameOver();
+                } else {
+                    loadLevel();
+                }
             }
         }else if(stage == "WIN"){
             // LEVEL COMPLETE
@@ -211,7 +212,7 @@ void loop() {
                     leds[i] = CRGB(0, 255, 0);
                 }
                 SFXwin();
-            }else if(stageStartTime+2500 > mm){
+            }else if(stageStartTime+2200 > mm){
                 for(int i = 0; i< NUM_LEDS; i++){
                     leds[i].fadeToBlackBy(20);
                 }
@@ -255,15 +256,16 @@ void loop() {
                 }
             }else{
                 stage = "SCREENSAVER";
-                stageStartTime = 0;
+                stageStartTime = mm;
             }
         }
 
         
-        Serial.print(millis()-mm);
-        Serial.print(" - ");
+        //Serial.print(millis()-mm);
+        //Serial.print(" - ");
         FastLED.show();
-        Serial.println(millis()-mm);
+        //Serial.println(millis()-mm);
+        Serial.println(stage);
     }
 }
 
@@ -275,7 +277,7 @@ void loadLevel(){
     updateLives();
     cleanupLevel();
     playerPosition = 0;
-    playerAlive = 1;
+    playerPositionModifier = 0;
     switch(levelNumber){
         case 0:
             // Left or right?
@@ -337,6 +339,7 @@ void loadLevel(){
             spawnBoss();
             break;
     }
+    playerAlive = 1;
     stageStartTime = millis();
     stage = "PLAY";
 }
@@ -401,6 +404,15 @@ void cleanupLevel(){
     boss.Kill();
 }
 
+void startGame() {
+    levelNumber = -1;
+    stageStartTime = millis();
+    lastInputTime = stageStartTime;
+    stage = "WIN";
+    lives = 3;
+    cleanupLevel();
+}
+
 void levelComplete(){
     stageStartTime = millis();
     stage = "WIN";
@@ -416,8 +428,7 @@ void nextLevel(){
 }
 
 void gameOver(){
-    levelNumber = 0;
-    lives = 3;
+    stageStartTime = millis();
     stage = "GAMEOVER";
 } 
 
@@ -431,9 +442,6 @@ void die(){
     stageStartTime = millis();
     stage = "DEAD";
     killTime = millis();
-    if(lives == 0){
-        gameOver();
-    }
 }
 
 // ----------------------------------
