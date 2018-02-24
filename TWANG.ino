@@ -150,6 +150,7 @@ void loop() {
             }
         }
         if(stage == "SCREENSAVER"){
+            digitalWrite(startLed, HIGH);
             if (digitalRead(startButton) == LOW) {
                 startGame();
             } else {
@@ -410,6 +411,7 @@ void startGame() {
     lastInputTime = stageStartTime;
     stage = "WIN";
     lives = 3;
+    digitalWrite(startLed, LOW);
     cleanupLevel();
 }
 
