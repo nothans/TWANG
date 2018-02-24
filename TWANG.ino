@@ -153,11 +153,10 @@ void loop() {
             }
         }
         if(stage == Stage::SCREENSAVER){
-            digitalWrite(startLed, HIGH);
             if (digitalRead(startButton) == LOW) {
                 startGame();
             } else {
-                screenSaverTick();
+                screenSaverTick();                
             }
         }else if(stage == Stage::PLAY){
             // PLAYING
@@ -649,8 +648,20 @@ void updateLives(){
 // ---------------------------------
 // --------- SCREENSAVER -----------
 // ---------------------------------
+
+int screenSaverLedTick = 0;
+
 void screenSaverTick(){
-  screenSaverMgr.Tick();
+    long mm = millis();
+    int screenSaverLedTickNew = mm/500;
+    if (screenSaverLedTickNew != screenSaverLedTick) {
+        screenSaverLedTick = screenSaverLedTickNew;
+        digitalWrite(lifeLEDs[0], random8(100)>50?HIGH:LOW);
+        digitalWrite(lifeLEDs[1], random8(100)>50?HIGH:LOW);
+        digitalWrite(lifeLEDs[2], random8(100)>50?HIGH:LOW);
+        digitalWrite(startLed, (screenSaverLedTick%2)?HIGH:LOW);
+    }
+    screenSaverMgr.Tick();
 }
 
 // ---------------------------------
