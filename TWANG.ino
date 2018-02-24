@@ -42,7 +42,7 @@ iSin isin = iSin();
 
 // JOYSTICK
 #define JOYSTICK_ORIENTATION 1     // 0, 1 or 2 to set the angle of the joystick
-#define JOYSTICK_DIRECTION   1     // 0/1 to flip joystick direction
+#define JOYSTICK_DIRECTION   0     // 0/1 to flip joystick direction
 #define ATTACK_THRESHOLD     30000 // The threshold that triggers an attack
 #define JOYSTICK_DEADZONE    5     // Angle to ignore
 int joystickTilt = 0;              // Stores the angle of the joystick
