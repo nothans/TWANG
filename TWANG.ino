@@ -15,59 +15,52 @@
 #include "Boss.h"
 #include "Conveyor.h"
 
+#include "ScreenSaverMgr.h"
+
+#include "defines.h"
+
 // MPU
 MPU6050 accelgyro;
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
 
-// LED setup
-#define NUM_LEDS             300
-#define DATA_PIN             3
-//#define CLOCK_PIN            4
-#define LED_COLOR_ORDER      BGR//GBR
-#define BRIGHTNESS           255
-#define DIRECTION            1     // 0 = right to left, 1 = left to right
-#define MIN_REDRAW_INTERVAL  16    // Min redraw interval (ms) 33 = 30fps / 16 = 63fps
-#define USE_GRAVITY          1     // 0/1 use gravity (LED strip going up wall)
-#define BEND_POINT           0   // 0/1000 point at which the LED strip goes up the wall
-
 // GAME
 long previousMillis = 0;           // Time of the last redraw
 int levelNumber = 0;
 long lastInputTime = 0;
-#define TIMEOUT              20000
-#define LEVEL_COUNT          9
-#define MAX_VOLUME           10
 iSin isin = iSin();
-
-// JOYSTICK
-#define JOYSTICK_ORIENTATION 1     // 0, 1 or 2 to set the angle of the joystick
-#define JOYSTICK_DIRECTION   0     // 0/1 to flip joystick direction
-#define ATTACK_THRESHOLD     30000 // The threshold that triggers an attack
-#define JOYSTICK_DEADZONE    5     // Angle to ignore
-int joystickTilt = 0;              // Stores the angle of the joystick
-int joystickWobble = 0;            // Stores the max amount of acceleration (wobble)
-
-// WOBBLE ATTACK
-#define ATTACK_WIDTH        70     // Width of the wobble attack, world is 1000 wide
-#define ATTACK_DURATION     500    // Duration of a wobble attack (ms)
-long attackMillis = 0;             // Time the attack started
-bool attacking = 0;                // Is the attack in progress?
-#define BOSS_WIDTH          40
-
-// PLAYER
-#define MAX_PLAYER_SPEED    10     // Max move speed of the player
-char* stage;                       // what stage the game is at (PLAY/DEAD/WIN/SCREENSAVER)
-long stageStartTime;               // Stores the time the stage changed for stages that are time based
-int playerPosition;                // Stores the player position
-int playerPositionModifier;        // +/- adjustment to player position
-bool playerAlive;
-long killTime;
-int lives = 3;
 
 int lifeLEDs[3] = {52, 50, 48};
 int startLed = 53;
 int startButton = 51;
+
+// JOYSTICK
+int joystickTilt = 0;              // Stores the angle of the joystick
+int joystickWobble = 0;            // Stores the max amount of acceleration (wobble)
+
+// WOBBLE ATTACK
+long attackMillis = 0;             // Time the attack started
+bool attacking = 0;                // Is the attack in progress?
+
+enum Stage 
+{
+  SCREENSAVER,
+  PLAY,
+  WIN,
+  DEAD,
+  GAMEOVER,
+  COMPLETE,
+};
+
+// PLAYER
+Stage stage;                       // what stage the game is at (PLAY/DEAD/WIN/SCREENSAVER)
+Stage stagePrev;
+long stageStartTime = 0;           // Stores the time the stage changed for stages that are time based
+int playerPosition = 0;            // Stores the player position
+int playerPositionModifier = 0;    // +/- adjustment to player position
+bool playerAlive;
+long killTime;
+int lives = 3;
 
 // POOLS
 Enemy enemyPool[10] = {
@@ -96,6 +89,12 @@ CRGB leds[NUM_LEDS];
 RunningMedian MPUAngleSamples = RunningMedian(5);
 RunningMedian MPUWobbleSamples = RunningMedian(5);
 
+ScreenSaverMgr screenSaverMgr = ScreenSaverMgr();
+
+
+///////////////////////////////////////////
+
+
 void setup() {
     Serial.begin(9600);
     while (!Serial);
@@ -120,20 +119,24 @@ void setup() {
     digitalWrite(startLed, HIGH);
     pinMode(startButton, INPUT_PULLUP);
     
-    stage = "SCREENSAVER";
+    stage = Stage::SCREENSAVER;
 }
 
 void loop() {
     long mm = millis();
+    if (stagePrev != stage) {
+        stageStartTime = mm;
+        stagePrev = stage;
+    }
     int brightness = 0;
     
-    if(stage == "PLAY"){
+    if(stage == Stage::PLAY){
         if(attacking){
             SFXattacking();
         }else{
             SFXtilt(joystickTilt);
         }
-    }else if(stage == "DEAD"){
+    }else if(stage == Stage::DEAD){
         SFXdead();
     }
     
@@ -146,17 +149,17 @@ void loop() {
             lastInputTime = mm;
         }else{
             if(lastInputTime+TIMEOUT < mm){
-                stage = "SCREENSAVER";
+                stage = Stage::SCREENSAVER;
             }
         }
-        if(stage == "SCREENSAVER"){
+        if(stage == Stage::SCREENSAVER){
             digitalWrite(startLed, HIGH);
             if (digitalRead(startButton) == LOW) {
                 startGame();
             } else {
                 screenSaverTick();
             }
-        }else if(stage == "PLAY"){
+        }else if(stage == Stage::PLAY){
             // PLAYING
             if(attacking && attackMillis+ATTACK_DURATION < mm) attacking = 0;
             
@@ -195,7 +198,7 @@ void loop() {
             drawPlayer();
             drawAttack();
             drawExit();
-        }else if(stage == "DEAD"){
+        }else if(stage == Stage::DEAD){
             // DEAD
             FastLED.clear();
             if(!tickParticles()){
@@ -205,7 +208,7 @@ void loop() {
                     loadLevel();
                 }
             }
-        }else if(stage == "WIN"){
+        }else if(stage == Stage::WIN){
             // LEVEL COMPLETE
             if(stageStartTime+800 > mm){
                 int n = max(map(((mm-stageStartTime)), 0, 500, NUM_LEDS, 0), 0);
@@ -221,7 +224,7 @@ void loop() {
             }else{
                 nextLevel();
             }
-        }else if(stage == "COMPLETE"){
+        }else if(stage == Stage::COMPLETE){
             FastLED.clear();
             SFXcomplete();
             if(stageStartTime+500 > mm){
@@ -244,7 +247,7 @@ void loop() {
             }else{
                 nextLevel();
             }
-        } else if(stage == "GAMEOVER"){
+        } else if(stage == Stage::GAMEOVER){
             if(stageStartTime+2000 > mm){
                 SFXdead();
                 int n = constrain(map(((mm-stageStartTime)), 0, 1000, 0, NUM_LEDS), 0, NUM_LEDS);
@@ -256,8 +259,7 @@ void loop() {
                     leds[i].fadeToBlackBy(10);
                 }
             }else{
-                stage = "SCREENSAVER";
-                stageStartTime = mm;
+                stage = Stage::SCREENSAVER;
             }
         }
 
@@ -341,8 +343,7 @@ void loadLevel(){
             break;
     }
     playerAlive = 1;
-    stageStartTime = millis();
-    stage = "PLAY";
+    stage = Stage::PLAY;
 }
 
 void spawnBoss(){
@@ -407,18 +408,16 @@ void cleanupLevel(){
 
 void startGame() {
     levelNumber = -1;
-    stageStartTime = millis();
-    lastInputTime = stageStartTime;
-    stage = "WIN";
+    lastInputTime = millis();
+    stage = Stage::WIN;
     lives = 3;
     digitalWrite(startLed, LOW);
     cleanupLevel();
 }
 
 void levelComplete(){
-    stageStartTime = millis();
-    stage = "WIN";
-    if(levelNumber == LEVEL_COUNT) stage = "COMPLETE";
+    stage = Stage::WIN;
+    if(levelNumber == LEVEL_COUNT) stage = Stage::COMPLETE;
     lives = 3;
     updateLives();
 }
@@ -430,8 +429,7 @@ void nextLevel(){
 }
 
 void gameOver(){
-    stageStartTime = millis();
-    stage = "GAMEOVER";
+    stage = Stage::GAMEOVER;
 } 
 
 void die(){
@@ -441,8 +439,7 @@ void die(){
     for(int p = 0; p < particleCount; p++){
         particlePool[p].Spawn(playerPosition);
     }
-    stageStartTime = millis();
-    stage = "DEAD";
+    stage = Stage::DEAD;
     killTime = millis();
 }
 
@@ -653,62 +650,7 @@ void updateLives(){
 // --------- SCREENSAVER -----------
 // ---------------------------------
 void screenSaverTick(){
-    int n, b, c, i;
-    long mm = millis();
-    long modeDuration = 10000;
-    int modeCount = 2;
-    int mode = (mm/modeDuration)%modeCount;
-    long modeTime = mm%modeDuration;
-
-    switch (mode) {
-        case 2: {
-            // Marching green <> orange
-            for(i = 0; i<NUM_LEDS; i++){
-                leds[i].nscale8(250);
-            }
-            n = (mm/250)%10;
-            b = 10+((sin(mm/500.00)+1)*20.00);
-            c = 20+((sin(mm/5000.00)+1)*33);
-            for(i = 0; i<NUM_LEDS; i++){
-                if(i%10 == n){
-                    leds[i] = CHSV( c, 255, 150);
-                }
-            }
-            break;
-        }
-        case 1: {
-            // Random flashes
-            for(i = 0; i<NUM_LEDS; i++){
-                leds[i].nscale8(250);
-            }
-            randomSeed(mm);
-            for(i = 0; i<NUM_LEDS; i++){
-                if(random8(200) == 0){
-                    leds[i] = CHSV( 25, 255, 100);
-                }
-            }
-            break;
-        }
-        case 0: {
-            // beat flashes            
-            for(i = 0; i<NUM_LEDS; i++){
-                leds[i].fadeToBlackBy(128);
-            }            
-            randomSeed(mm);            
-            b = mm%800;
-            if (b < 240) {
-                n = 121 - b/2;
-            } else {
-                n = 1;
-            }
-            for(i = 0; i<NUM_LEDS; i++){
-                if ((random8() <= n)) {
-                    leds[i] = CRGB::White;
-                }
-            }
-            break;
-        }
-    }
+  screenSaverMgr.Tick();
 }
 
 // ---------------------------------
