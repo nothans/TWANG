@@ -11,15 +11,17 @@ extern CRGB leds[NUM_LEDS];
 #include "ScrSvrPulseFlashes.h"
 #include "ScrSvrMarchingGreenOrange.h"
 #include "ScrSvrRandomFlashes.h"
+#include "ScrSvrDef.h" //AddScreenSaver
 
 ScreenSaverMgr::ScreenSaverMgr()
 {
-    _screenSaverCount = 3;
+    _screenSaverCount = 4; //AddScreenSaver
     _screenSavers = new ScreenSaver*[_screenSaverCount] 
     {
         new ScrSvrPulseFlashes(),
         new ScrSvrMarchingGreenOrange(),
         new ScrSvrRandomFlashes(),
+        new ScrSvrDef(), //AddScreenSaver
     };
 }
 
