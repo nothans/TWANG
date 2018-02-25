@@ -12,6 +12,7 @@ extern CRGB leds[NUM_LEDS];
 #include "ScrSvrMarchingGreenOrange.h"
 #include "ScrSvrRandomFlashes.h"
 #include "ScrSvrWhiteFlow.h"
+#include "ScrSvrDotInBowl.h"
 //Include your new Screensaver here
 
 ScreenSaverMgr::ScreenSaverMgr()

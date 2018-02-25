@@ -11,12 +11,12 @@ class ScrSvrDotInBowl: public ScreenSaver
 };
 void ScrSvrDotInBowl::Tick(long millis)
 {
-    int pos = map(isin.convert(millis),-255,255,0,NUM_LEDS);
+    int pos = map(isin.convert(millis/10),-128,128,1,NUM_LEDS-1);
 
 
     for (int i = 0; i < NUM_LEDS; i ++)
     {
-        if (i == pos)
+        if (i == pos || i + 1 == pos || i - 1 == pos)
         {
             leds[i] = CRGB::White;
         }
