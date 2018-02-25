@@ -16,9 +16,10 @@ extern CRGB leds[NUM_LEDS];
 
 ScreenSaverMgr::ScreenSaverMgr()
 {
-    _screenSaverCount = 4; //AddScreenSaver
+    _screenSaverCount = 5; //Number of Screensavers
     _screenSavers = new ScreenSaver*[_screenSaverCount] 
     {
+        new ScrSvrDotInBowl(),
         new ScrSvrWhiteFlow(), 
         new ScrSvrPulseFlashes(),
         new ScrSvrMarchingGreenOrange(),
