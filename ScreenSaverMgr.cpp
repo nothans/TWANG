@@ -11,26 +11,27 @@ extern CRGB leds[NUM_LEDS];
 #include "ScrSvrPulseFlashes.h"
 #include "ScrSvrMarchingGreenOrange.h"
 #include "ScrSvrRandomFlashes.h"
-#include "ScrSvrDef.h" //AddScreenSaver
+#include "ScrSvrWhiteFlow.h"
+//Include your new Screensaver here
 
 ScreenSaverMgr::ScreenSaverMgr()
 {
     _screenSaverCount = 4; //AddScreenSaver
     _screenSavers = new ScreenSaver*[_screenSaverCount] 
     {
+        new ScrSvrWhiteFlow(), 
         new ScrSvrPulseFlashes(),
         new ScrSvrMarchingGreenOrange(),
         new ScrSvrRandomFlashes(),
-        new ScrSvrDef(), //AddScreenSaver
+        //Add your new Screensaver here
     };
 }
 
 void ScreenSaverMgr::Tick()
 {
     long mm = millis();
-    long modeDuration = 10000;
-    int mode = (mm/modeDuration)%_screenSaverCount;
-    long modeTime = mm%modeDuration;
+    int mode = (mm/SCREEN_SAVER_DURATION)%_screenSaverCount;
+    long modeTime = mm%SCREEN_SAVER_DURATION;
 
     _mode = mode;
     _screenSavers[_mode]->Tick(modeTime);
