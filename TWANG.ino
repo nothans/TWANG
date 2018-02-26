@@ -4,7 +4,6 @@
 #include "MPU6050.h"
 #include "Wire.h"
 #include "toneAC.h"
-#include "iSin.h"
 #include "RunningMedian.h"
 
 // Included libs
@@ -28,7 +27,6 @@ int16_t gx, gy, gz;
 long previousMillis = 0;           // Time of the last redraw
 int levelNumber = 0;
 long lastInputTime = 0;
-iSin isin = iSin();
 
 int lifeLEDs[3] = {52, 50, 48};
 int startLed = 53;

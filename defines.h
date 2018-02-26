@@ -29,3 +29,5 @@
 // PLAYER
 #define MAX_PLAYER_SPEED    10     // Max move speed of the player
 
+//SCREEN SAVER
+#define SCREEN_SAVER_DURATION 10000 // Duration every screen saver will run (ms)

@@ -3,8 +3,8 @@
 
 class ScrSvrPulseFlashes: public ScreenSaver
 {
-  public:
-    virtual void Tick(long millis);
+    public:
+        virtual void Tick(long millis);
 };
 
 void ScrSvrPulseFlashes::Tick(long millis)
