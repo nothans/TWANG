@@ -5,9 +5,6 @@ class ScrSvrDotInBowl: public ScreenSaver
 {
     public:
         virtual void Tick(long millis);
-
-    private:
-        iSin isin = iSin();
 };
 void ScrSvrDotInBowl::Tick(long millis)
 {
