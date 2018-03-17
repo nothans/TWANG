@@ -1,5 +1,12 @@
 #include "Arduino.h"
 
+/*
+startPoint: 0 to 1000
+endPoint: 0 to 1000, combined with startPoint this sets the location and size of the lava
+ontime: How long (ms) the lava is ON for
+offtime: How long (ms) the lava is OFF for
+offset: How long (ms) after the level starts before the lava turns on, use this to create patterns with multiple lavas
+*/
 class Lava
 {
   public:
