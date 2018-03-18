@@ -63,7 +63,7 @@
 	#define LAVA_OFF_BRIGHTNESS 15
 #endif
 
-
+//#define USE_LIFELEDS  // uncomment this to make Life LEDs avilable (not used in the B. Dring enclosure)
 
 
 #define DIRECTION            1     // 0 = right to left, 1 = left to right
@@ -131,8 +131,10 @@ bool lastLevel = false;
 
 
 // POOLS
+#ifdef USE_LIFELEDS
 #define LIFE_LEDS 3
 int lifeLEDs[LIFE_LEDS] = {7, 6, 5}; // these numbers are Arduino GPIO numbers...this is not used in the B. Dring enclosure design
+#endif
 
 #define ENEMY_COUNT 10
 Enemy enemyPool[ENEMY_COUNT] = {
@@ -195,10 +197,7 @@ void setup() {
     FastLED.setDither(1);	
 
     // Life LEDs
-    for(int i = 0; i<LIFE_LEDS; i++){
-        pinMode(lifeLEDs[i], OUTPUT);
-        digitalWrite(lifeLEDs[i], HIGH);
-    }
+    initLifeLEDs();
     
 	stage = STARTUP;
 	stageStartTime = millis();
@@ -943,13 +942,28 @@ bool inLava(int pos){
     return false;
 }
 
+void initLifeLEDs(){
+#ifdef USE_LIFELEDS  
+  // Life LEDs
+  for(int i = 0; i<LIFE_LEDS; i++){
+    pinMode(lifeLEDs[i], OUTPUT);
+    digitalWrite(lifeLEDs[i], HIGH);
+  }
+#endif
+}
+
+void updateLifeLEDs(){
+#ifdef USE_LIFELEDS
+  // Updates the life LEDs to show how many lives the player has left
+  for(int i = 0; i<LIFE_LEDS; i++){
+    digitalWrite(lifeLEDs[i], lives>i?HIGH:LOW);
+  }
+#endif
+}
+
 void updateLives(){
-    // Updates the life LEDs to show how many lives the player has left
-    for(int i = 0; i<LIFE_LEDS; i++){
-       digitalWrite(lifeLEDs[i], lives>i?HIGH:LOW);
-    }
-	
-	drawLives();
+  updateLifeLEDs();
+  drawLives();
 }
 
 void save_game_stats(bool bossKill)
