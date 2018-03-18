@@ -69,14 +69,17 @@ void settings_eeprom_write();
 void printError(int reason);
 void show_game_stats();
 
-
 void reset_cpu()
 {
+#if defined(ARDUINO_AVR_MEGA2560)
   wdt_enable(WDTO_15MS);
   while(1)
   {
     // wait for it...boom
   }
+#elif defined(TEENSYDUINO) && defined(__MK20DX256__)
+  _reboot_Teensyduino_();
+#endif
 }
 
 void processSerial(char inChar)
