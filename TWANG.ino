@@ -71,7 +71,7 @@
 //#define USE_LIFELEDS  // uncomment this to make Life LEDs avilable (not used in the B. Dring enclosure)
 
 // what type of sound device ....pick one
-//#define USE_TONEAC
+#define USE_TONEAC
 
 #if defined(USE_TONEAC)
 #include "toneAC.h"
