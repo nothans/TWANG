@@ -28,7 +28,6 @@
 #include "I2Cdev.h"
 #include "MPU6050.h"
 #include "Wire.h"
-#include "toneAC.h"
 #include "iSin.h"
 #include "RunningMedian.h"
 
@@ -45,8 +44,14 @@
 
 // LED Strip Setup
 #define NUM_LEDS             288
+
+#if defined(ARDUINO_AVR_MEGA2560)
+// Arduino Mega 2560
 #define DATA_PIN             3
 #define CLOCK_PIN            4   // ignored for Neopixel
+#else
+#error "Please define DATA_PIN and CLOCK_PIN for this board."
+#endif
 
 // what type of LED Strip....pick one
 #define USE_APA102
@@ -65,6 +70,21 @@
 
 //#define USE_LIFELEDS  // uncomment this to make Life LEDs avilable (not used in the B. Dring enclosure)
 
+// what type of sound device ....pick one
+//#define USE_TONEAC
+
+#if defined(USE_TONEAC)
+#include "toneAC.h"
+#define twangInitTone()                   do {} while(0)
+#define twangPlayTone(freq, vol)          toneAC(freq, vol)
+#define twangPlayToneLen(freq, vol, len)  toneAC(freq, vol, len, true)
+#define twangStopTone()                   noToneAC()
+#else
+#define twangInitTone()                   do {} while(0)
+#define twangPlayTone(freq, vol)          do {} while(0)
+#define twangPlayToneLen(freq, vol, len)  do {} while(0)
+#define twangStopTone()                   do {} while(0)
+#endif
 
 #define DIRECTION            1     // 0 = right to left, 1 = left to right
 #define MIN_REDRAW_INTERVAL  16    // Min redraw interval (ms) 33 = 30fps / 16 = 63fps
@@ -183,6 +203,9 @@ void setup() {
     // MPU
     Wire.begin();
     accelgyro.initialize();	
+
+    // initialize sound device (if necessary)
+    twangInitTone();
 
     // Fast LED
     #ifdef USE_APA102
@@ -741,7 +764,7 @@ void tickLava(){
 						leds[p] = CRGB(180, 100, 0);
                 }
 				if (random8(30) > 3)
-					toneAC(380 + random8(200), user_settings.audio_volume * 0.7); // scary lava noise
+					twangPlayTone(380 + random8(200), user_settings.audio_volume * 0.7); // scary lava noise
             }
         }
         lavaPool[i] = LP;
@@ -1071,7 +1094,7 @@ void SFXFreqSweepWarble(int duration, int elapsedTime, int freqStart, int freqEn
 	if (warble)
 			warble = map(sin(millis()/20.0)*1000.0, -1000, 1000, 0, warble);
 		
-	toneAC(freq + warble, user_settings.audio_volume);
+	twangPlayTone(freq + warble, user_settings.audio_volume);
 }
 
 /*
@@ -1100,7 +1123,7 @@ void SFXFreqSweepNoise(int duration, int elapsedTime, int freqStart, int freqEnd
 	if (noiseFactor)
 			noiseFactor = noiseFactor - random8(noiseFactor / 2);
 		
-	toneAC(freq + noiseFactor, user_settings.audio_volume);
+	twangPlayTone(freq + noiseFactor, user_settings.audio_volume);
 }
 
 
@@ -1108,7 +1131,7 @@ void SFXtilt(int amount){
     int f = map(abs(amount), 0, 90, 80, 900)+random8(100);
     if(playerPositionModifier < 0) f -= 500;
     if(playerPositionModifier > 0) f += 200;
-    toneAC(f, min(min(abs(amount)/9, 5), user_settings.audio_volume));
+    twangPlayTone(f, min(min(abs(amount)/9, 5), user_settings.audio_volume));
 
 }
 void SFXattacking(){
@@ -1116,7 +1139,7 @@ void SFXattacking(){
     if(random8(5)== 0){
       freq *= 3;
     }
-    toneAC(freq, user_settings.audio_volume);
+    twangPlayTone(freq, user_settings.audio_volume);
 }
 void SFXdead(){	
 	SFXFreqSweepNoise(1000, millis()-killTime, 1000, 10, 200);
@@ -1127,7 +1150,7 @@ void SFXgameover(){
 }
 
 void SFXkill(){
-    toneAC(2000, user_settings.audio_volume, 1000, true);
+    twangPlayToneLen(2000, user_settings.audio_volume, 1000);
 }
 void SFXwin(){
 	SFXFreqSweepWarble(WIN_OFF_DURATION, millis()-stageStartTime, 40, 400, 20);
@@ -1139,7 +1162,7 @@ void SFXbosskilled()
 }
 
 void SFXcomplete(){
-    noToneAC();
+    twangStopTone();
 }
 
 /*
