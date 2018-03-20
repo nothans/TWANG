@@ -17,8 +17,11 @@
 #define ATTACK_THRESHOLD     30000 // The threshold that triggers an attack
 #define JOYSTICK_DEADZONE    7     // Angle to ignore
 
+// PLAYER
+#define MAX_PLAYER_SPEED    10     // Max move speed of the player
 #define LIVES_PER_LEVEL		3
 
+//AUDIO
 #define MAX_VOLUME           10
 
 enum stripTypes{
@@ -144,7 +147,7 @@ void show_game_stats()
 {
 	Serial.println("\r\n ===== Play statistics ======");
 	Serial.print("Games played: ");Serial.println(user_settings.games_played);
-	if (user_settings.games_played > 0) {
+	if (user_settings.games_played > 0)	{
 		Serial.print("Average Score: ");Serial.println(user_settings.total_points / user_settings.games_played);
 	}
 	Serial.print("High Score: ");Serial.println(user_settings.high_score);
@@ -342,4 +345,4 @@ void printError(int reason) {
 		break;
 	}
 }
-	
+

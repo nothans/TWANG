@@ -5,23 +5,14 @@
 	
 	https://github.com/Critters/TWANG
 	
-	Updates by B. Dring 1/2018
-	
-	TO DO 
-	- Move ax, ay, az , etc into getInput() .. s/b local variables
-	- Moved attacking, moving and dying sound activation into main loop
-	  to simplify the code
-	- Basic settings can now be accessed via serial terminal w/menu
-	  These are settings that might be adjusted to tweak use like brightness
-	  It is not for initial setup like LED strip type and LED count
-	- Scoring system now records EEPROM games played, average score, high score, boss kills (dislayed on serial port)
-	- Added some levels
-	- Got rid of LEVEL_COUNT to make it easier to add levels
-	- Added instructions for editing levels
-	- Adjusted some brightness values in the conveyor and lava for neopixels that don't do low levels well.
+		
+	Latest Changes
+	- Added USE_LIFELEDS 
+	- Made conveyors have settable speeds
+	- Fix game stat error
 
 */
-#define VERSION "2018-02-25"
+#define VERSION "2018-03-19"
 
 // Required libs
 #include "FastLED.h"
@@ -143,6 +134,7 @@ void twangInitTone()                   {
 #define MIN_REDRAW_INTERVAL  16    // Min redraw interval (ms) 33 = 30fps / 16 = 63fps
 #define USE_GRAVITY          0     // 0/1 use gravity (LED strip going up wall)
 #define BEND_POINT           750   // 0/1000 point at which the LED strip goes up the wall
+//#define USE_LIFELEDS  // uncomment this to make Life LEDs available (not used in the B. Dring enclosure)
 
 // GAME
 long previousMillis = 0;           // Time of the last redraw
@@ -164,8 +156,7 @@ long attackMillis = 0;             // Time the attack started
 bool attacking = 0;                // Is the attack in progress?
 #define BOSS_WIDTH          40
 
-// PLAYER
-#define MAX_PLAYER_SPEED    10     // Max move speed of the player
+
 
 enum stages {
 	STARTUP,
@@ -203,12 +194,13 @@ bool lastLevel = false;
 
 
 
-// POOLS
 #ifdef USE_LIFELEDS
-#define LIFE_LEDS 3
-int lifeLEDs[LIFE_LEDS] = {7, 6, 5}; // these numbers are Arduino GPIO numbers...this is not used in the B. Dring enclosure design
+	#define LIFE_LEDS 3
+	int lifeLEDs[LIFE_LEDS] = {7, 6, 5}; // these numbers are Arduino GPIO numbers...this is not used in the B. Dring enclosure design
 #endif
 
+
+// POOLS
 #define ENEMY_COUNT 10
 Enemy enemyPool[ENEMY_COUNT] = {
     Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy()
@@ -277,7 +269,12 @@ void setup() {
     FastLED.setDither(1);	
 
     // Life LEDs
-    initLifeLEDs();
+	#ifdef USE_LIFELEDS
+    for(int i = 0; i<LIFE_LEDS; i++){
+        pinMode(lifeLEDs[i], OUTPUT);
+        digitalWrite(lifeLEDs[i], HIGH);
+    }
+	#endif
     
 	stage = STARTUP;
 	stageStartTime = millis();
@@ -452,13 +449,13 @@ void loadLevel(){
 			right: the upper end of the lava pool
 			ontime: How long the lave stays on.
 			offset: the delay before the first switch
-			state: does it start on or off
+			state: does it start on or off_dir
 	
 	Conveyor: You can create 2 conveyors.
-		spawnConveyor(startPoint, endPoint, direction)
+		spawnConveyor(startPoint, endPoint, speed)
 			startPoint: The close end of the conveyor
 			endPoint: The far end of the conveyor
-			direction: 1 = away, -1 = towards you
+			speed: positive = away, negative = towards you (must be less than +/- player speed)
 	
 	===== Other things you can adjust per level ================ 
 	
@@ -496,14 +493,26 @@ void loadLevel(){
             spawnEnemy(700, 1, 7, 275);
             spawnEnemy(500, 1, 5, 250);
             break;
-        case 5:
-            // Conveyor
-            spawnConveyor(100, 600, -1);
-            spawnEnemy(800, 0, 0, 0);
+		case 5:
+			// Sin enemy swarm
+            spawnEnemy(700, 1, 7, 275);
+            spawnEnemy(500, 1, 5, 250);
+			
+			spawnEnemy(600, 1, 7, 200);
+            spawnEnemy(800, 1, 5, 350);
+			
+			spawnEnemy(400, 1, 7, 150);
+            spawnEnemy(450, 1, 5, 400);
+			
             break;
         case 6:
+            // Conveyor
+            spawnConveyor(100, 600, -6);
+            spawnEnemy(800, 0, 0, 0);
+            break;
+        case 7:
             // Conveyor of enemies
-            spawnConveyor(50, 1000, 1);
+            spawnConveyor(50, 1000, 6);
             spawnEnemy(300, 0, 0, 0);
             spawnEnemy(400, 0, 0, 0);
             spawnEnemy(500, 0, 0, 0);
@@ -512,38 +521,46 @@ void loadLevel(){
             spawnEnemy(800, 0, 0, 0);
             spawnEnemy(900, 0, 0, 0);
             break;
-		case 7:   // spawn train;		
+		case 8:   // spawn train;		
 			spawnPool[0].Spawn(900, 1000, 3, 0, 0);					
 			break;
-		case 8:   // spawn train skinny width;
+		case 9:   // spawn train skinny width;
 			attack_width = 32;
 			spawnPool[0].Spawn(900, 1800, 2, 0, 0);
 			break;
-		case 9:  // evil fast split spawner
+		case 10:  // evil fast split spawner
 			spawnPool[0].Spawn(550, 1100, 3, 0, 0);
 			spawnPool[1].Spawn(550, 1100, 3, 1, 0);		
 			break;
-		case 10: // split spawner with exit blocking lava
+		case 11: // split spawner with exit blocking lava
 			spawnPool[0].Spawn(500, 1100, 3, 0, 0);
 			spawnPool[1].Spawn(500, 1100, 3, 1, 0);		
 			spawnLava(900, 950, 2200, 800, 2000, Lava::OFF);
 			break;
-        case 11:
+        case 12:
             // Lava run
             spawnLava(195, 300, 2000, 2000, 0, Lava::OFF);
             spawnLava(400, 500, 2000, 2000, 0, Lava::OFF);
             spawnLava(600, 700, 2000, 2000, 0, Lava::OFF);
             spawnPool[0].Spawn(1000, 3800, 4, 0, 0);
             break;
-        case 12:
-            // Sin enemy #2
+        case 13:
+            // Sin enemy #2 practice (slow conveyor)
             spawnEnemy(700, 1, 7, 275);
             spawnEnemy(500, 1, 5, 250);
             spawnPool[0].Spawn(1000, 5500, 4, 0, 3000);
             spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
-            spawnConveyor(100, 900, -1);
+            spawnConveyor(100, 900, -4);
             break;
-        case 13: // (don't edit last level)
+		case 14:
+			// Sin enemy #2 (fast conveyor)
+            spawnEnemy(700, 1, 7, 275);
+            spawnEnemy(500, 1, 5, 250);
+            spawnPool[0].Spawn(1000, 5500, 4, 0, 3000);
+            spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
+            spawnConveyor(100, 900, -6);
+			break;
+        case 15: // (don't edit last level)
             // Boss this should always be the last level			
             spawnBoss();
             break;
@@ -850,23 +867,22 @@ bool tickParticles(){
 }
 
 void tickConveyors(){
-    int b, dir, n, i, ss, ee, led;
+    int b, speed, n, i, ss, ee, led;
     long m = 10000+millis();
     playerPositionModifier = 0;
 	
-	int levels = 5; // brightness levels in conveyor 
-	
+	int levels = 5; // brightness levels in conveyor 	
 	
 
     for(i = 0; i<CONVEYOR_COUNT; i++){
         if(conveyorPool[i]._alive){
-            dir = conveyorPool[i]._dir;
+            speed = constrain(conveyorPool[i]._speed, -MAX_PLAYER_SPEED+1, MAX_PLAYER_SPEED-1);
             ss = getLED(conveyorPool[i]._startPoint);
             ee = getLED(conveyorPool[i]._endPoint);
             for(led = ss; led<ee; led++){
                 
                 n = (-led + (m/100)) % levels;
-                if(dir == -1) 
+                if(speed < 0) 
 					n = (led + (m/100)) % levels;
 				
 				b = map(n, 5, 0, 0, CONVEYOR_BRIGHTNES);
@@ -875,11 +891,7 @@ void tickConveyors(){
             }
 
             if(playerPosition > conveyorPool[i]._startPoint && playerPosition < conveyorPool[i]._endPoint){
-                if(dir == -1){
-                    playerPositionModifier = -(MAX_PLAYER_SPEED-4);
-                }else{
-                    playerPositionModifier = (MAX_PLAYER_SPEED-4);
-                }
+                playerPositionModifier = speed;
             }
         }
     }
@@ -1042,8 +1054,14 @@ void updateLifeLEDs(){
 }
 
 void updateLives(){
-  updateLifeLEDs();
-  drawLives();
+	#ifdef USE_LIFELEDS
+		// Updates the life LEDs to show how many lives the player has left
+		for(int i = 0; i<LIFE_LEDS; i++){
+		   digitalWrite(lifeLEDs[i], lives>i?HIGH:LOW);
+		}
+	#endif
+	
+	drawLives();
 }
 
 void save_game_stats(bool bossKill)
