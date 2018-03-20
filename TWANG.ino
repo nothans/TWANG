@@ -141,7 +141,6 @@ bool lastLevel = false;
 
 
 
-// POOLS
 #ifdef USE_LIFELEDS
 	#define LIFE_LEDS 3
 	int lifeLEDs[LIFE_LEDS] = {7, 6, 5}; // these numbers are Arduino GPIO numbers...this is not used in the B. Dring enclosure design
@@ -217,6 +216,7 @@ void setup() {
     for(int i = 0; i<LIFE_LEDS; i++){
         pinMode(lifeLEDs[i], OUTPUT);
         digitalWrite(lifeLEDs[i], HIGH);
+    }
 	#endif
     
 	stage = STARTUP;

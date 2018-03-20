@@ -144,7 +144,6 @@ void show_game_stats()
 {
 	Serial.println("\r\n ===== Play statistics ======");
 	Serial.print("Games played: ");Serial.println(user_settings.games_played);
-	if (user_settings.games_played > 0) {
 	if (user_settings.games_played > 0)	{
 		Serial.print("Average Score: ");Serial.println(user_settings.total_points / user_settings.games_played);
 	}
