@@ -30,6 +30,7 @@
 #include "Wire.h"
 #include "iSin.h"
 #include "RunningMedian.h"
+#include "SPI.h"
 
 #include <stdint.h> // uint8_t type variables
 
@@ -77,6 +78,21 @@
 	#define LAVA_OFF_BRIGHTNESS 15
 #endif
 
+#if defined(TEENSYDUINO) && defined(__MK20DX256__) && defined(USE_PROPSHIELD)
+  void LEDStripShow() {
+    // beginTransaction prevents SPI bus conflicts
+    SPI.beginTransaction(SPISettings(24000000, MSBFIRST, SPI_MODE0));
+    digitalWrite(LEDENABLE_PIN, HIGH);  // enable access to LEDs
+    FastLED.show();
+    digitalWrite(LEDENABLE_PIN, LOW);
+    SPI.endTransaction();   // allow other libs to use SPI again    
+  }
+#else
+  void LEDStripShow() {
+    FastLED.show();
+  }
+#endif
+
 //#define USE_LIFELEDS  // uncomment this to make Life LEDs avilable (not used in the B. Dring enclosure)
 
 // what type of sound device ....pick one
@@ -96,19 +112,22 @@
 
 // GUItool: begin automatically generated code
 AudioSynthWaveformSine   sine1;          //xy=168,315
-AudioOutputAnalog        dac1;           //xy=418,299
-AudioConnection          patchCord1(sine1, dac1);
+AudioFilterBiquad        biquad1;        //xy=373,325
+AudioOutputAnalog        dac1;           //xy=561,269
+AudioConnection          patchCord1(sine1, biquad1);
+AudioConnection          patchCord2(biquad1, dac1);
 // GUItool: end automatically generated code
 
 void twangInitTone()                   {
   AudioMemory(20);
-  dac1.analogReference(EXTERNAL);
   delay(50);
   #ifdef USE_PROPSHIELD
     pinMode(AMPENABLE_PIN, OUTPUT);
     digitalWrite(AMPENABLE_PIN, HIGH);
     delay(10);
   #endif
+  biquad1.setLowpass(0, 20000.0 ,0.7);
+  biquad1.setHighpass(1, 20.0 ,0.7);
 }
 #define twangPlayTone(freq, vol)          do{sine1.amplitude(vol/10.0);sine1.frequency(freq);}while(0)
 #define twangPlayToneLen(freq, vol, len)  do{sine1.amplitude(vol/10.0);sine1.frequency(freq);}while(0)
@@ -959,11 +978,11 @@ void drawLives()
 			for (int j=0; j<4; j++)
 			{
 				leds[pos++] = CRGB(0, 255, 0);
-				FastLED.show();				
+				LEDStripShow();				
 			}
 			leds[pos++] = CRGB(0, 0, 0);			
 	}
-	FastLED.show();
+	LEDStripShow();
 	delay(1000);
 	FastLED.clear();
 }
