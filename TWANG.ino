@@ -396,7 +396,7 @@ void loop() {
 			}          
          }
 
-        FastLED.show();
+        LEDStripShow();
     }
 }
 
