@@ -14,7 +14,7 @@ This fork was done to incorporate feedback after several field tests. Details on
 * [RunningMedian](http://playground.arduino.cc/Main/RunningMedian)
 
 ## Hardware used:
-* Arduino MEGA
+* Arduino MEGA or Teensy3.2 + PropShield LC
 * 3 LEDs for life indicator (optional) This fork displays the remaining lives on the LED strip.
 * LED light strip. The more the better, maximum of 1000. Tested with 1x & 2x 144/meter, 12x 60/meter and 5m x 114/meter strips. This has been tested with APA102C and Neopixel type strips. Anything compatible wiht the FastLED library should work.
 * MPU6050 accelerometer
