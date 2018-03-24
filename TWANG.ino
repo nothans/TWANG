@@ -7,12 +7,10 @@
 	
 		
 	Latest Changes
-	- Added USE_LIFELEDS 
-	- Made conveyors have settable speeds
-	- Fix game stat error
-
+	- Made a better death animation with a bright flash at the beginning 
+	- Got rid of lava sound. It is not mixing well with other sounds on some levels
 */
-#define VERSION "2018-03-19"
+#define VERSION "2018-03-22"
 
 // Required libs
 #include "FastLED.h"
@@ -32,6 +30,7 @@
 #include "Boss.h"
 #include "Conveyor.h"
 #include "settings.h"
+
 
 // LED Strip Setup
 #define NUM_LEDS             288
@@ -103,8 +102,6 @@ long attackMillis = 0;             // Time the attack started
 bool attacking = 0;                // Is the attack in progress?
 #define BOSS_WIDTH          40
 
-
-
 enum stages {
 	STARTUP,
 	PLAY,
@@ -124,8 +121,6 @@ long killTime;
 uint8_t lives;
 bool lastLevel = false;
 
-
-
 // TODO all animation durations should be defined rather than literals 
 // because they are used in main loop and some sounds too.
 #define STARTUP_WIPEUP_DUR 200
@@ -138,8 +133,6 @@ bool lastLevel = false;
 #define WIN_FILL_DURATION 500     // sound has a freq effect that might need to be adjusted
 #define WIN_CLEAR_DURATION 1000
 #define WIN_OFF_DURATION 1200
-
-
 
 #ifdef USE_LIFELEDS
 	#define LIFE_LEDS 3
@@ -312,8 +305,9 @@ void loop() {
             drawExit();
         }else if(stage == DEAD){
             // DEAD			
-			SFXdead();
+			SFXdead();			
             FastLED.clear();
+			tickDie(mm);
             if(!tickParticles()){
                 loadLevel();
             }
@@ -779,9 +773,7 @@ void tickLava(){
 						leds[p] = CRGB(150, 0, 0);
 					else
 						leds[p] = CRGB(180, 100, 0);
-                }
-				if (random8(30) > 3)
-					twangPlayTone(380 + random8(200), user_settings.audio_volume * 0.7); // scary lava noise
+                }				
             }
         }
         lavaPool[i] = LP;
@@ -866,6 +858,28 @@ void tickBossKilled(long mm) // boss funeral
 		SFXcomplete();
 	}else{		
 		nextLevel();
+	}
+}
+
+void tickDie(long mm) { // a short bright explosion...particles persist after it.
+	const int duration = 200; // milliseconds
+	const int width = 10;     // half width of the explosion
+
+	if(stageStartTime+duration > mm) {// Spread red from player position up and down the width
+	
+		int brightness = map((mm-stageStartTime), 0, duration, 255, 50); // this allows a fade from white to red
+		
+		// fill up
+		int n = max(map(((mm-stageStartTime)), 0, duration, getLED(playerPosition), getLED(playerPosition)+width), 0);
+		for(int i = getLED(playerPosition); i<= n; i++){
+			leds[i] = CRGB(255, brightness, brightness);
+		}
+		
+		// fill to down
+		n = max(map(((mm-stageStartTime)), 0, duration, getLED(playerPosition), getLED(playerPosition)-width), 0);
+		for(int i = getLED(playerPosition); i>= n; i--){
+			leds[i] = CRGB(255, brightness, brightness);
+		}
 	}
 }
 
