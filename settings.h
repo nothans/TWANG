@@ -59,7 +59,7 @@ settings_t user_settings;
 
 #define READ_BUFFER_LEN 10
 #define CARRIAGE_RETURN 13
-char readBuffer[10];
+char readBuffer[READ_BUFFER_LEN];
 uint8_t readIndex = 0;
 
 void reset_cpu();

@@ -3,10 +3,7 @@ An Arduino-based, 1D, LED loving, dungeon crawler. inspired by Line Wobbler by R
 
 This fork was done to incorporate feedback after several field tests. Details on the fork can be found at the [Buildlog.net Blog](http://www.buildlog.net/blog?s=twang)
 
-
-
-## Video playlist
-A playlist that shows the development of TWANG and the game in both a desktop and house-sized form can be [found here](https://www.youtube.com/watch?v=9yf_VINmbTE&list=PL1_Z89_x_Dff-XhOxlx6sQ38wJqe1X2M0)
+![TWANG LED Game](http://www.buildlog.net/blog/wp-content/uploads/2018/01/20180111_130909-1.jpg?s=200)
 
 
 ## Required libraries:
@@ -37,17 +34,17 @@ The following is a quick overview of the code to help you understand and tweak t
 
 The game is played on a 1000 unit line, the position of enemies, the player, lava etc range from 0 to 1000 and the LEDs that represent them are derived using the getLED() function. You don't need to worry about this but it's good to know for things like the width of the attack and player max move speed. Regardles of the number of LEDs, everything takes place in this 1000 unit wide line.
 
-**//LED SETUP** Defines the quantity of LEDs as well as the data and clock pins used. I've tested several APA102-C strips and the color order sometimes changes from BGR to GBR, if the player is not blue, the exit green and the enemies red, this is the bit you want to change. Brightness should range from 50 to 255, use a lower number if playing at night or wanting to use a smaller power supply. "DIRECTION" can be set to 0 or 1 to flip the game orientation. In setup() there is a "FastLED.addLeds()" line, in there you could change it to another brand of LED strip like the cheaper WS2812.
+**LED SETUP** Defines the quantity of LEDs as well as the data and clock pins used. I've tested several APA102-C strips and the color order sometimes changes from BGR to GBR, if the player is not blue, the exit green and the enemies red, this is the bit you want to change. Brightness should range from 50 to 255, use a lower number if playing at night or wanting to use a smaller power supply. "DIRECTION" can be set to 0 or 1 to flip the game orientation. In setup() there is a "FastLED.addLeds()" line, in there you could change it to another brand of LED strip like the cheaper WS2812.
 
 The game also has 3 regular LEDs for life indicators (the player gets 3 lives which reset each time they level up). The pins for these LEDs are stored in lifeLEDs[] and are updated in the updateLives() function
 
-**//JOYSTICK SETUP** All parameters are commented in the code, you can set it to work in both forward/backward as well as side-to-side mode by changing JOYSTICK_ORIENTATION. Adjust the ATTACK_THRESHOLD if the "Twaning" is overly sensitive and the JOYSTICK_DEADZONE  if the player slowly drifts when there is no input (because it's hard to get the MPU6050 dead level)
+**JOYSTICK SETUP** All parameters are commented in the code, you can set it to work in both forward/backward as well as side-to-side mode by changing JOYSTICK_ORIENTATION. Adjust the ATTACK_THRESHOLD if the "Twaning" is overly sensitive and the JOYSTICK_DEADZONE  if the player slowly drifts when there is no input (because it's hard to get the MPU6050 dead level)
 
-**//WOBBLE ATTACK** Sets the width, duration (ms) of the attack
+**WOBBLE ATTACK** Sets the width, duration (ms) of the attack
 
-**//POOLS** These are the object pools for enemies, particles, lava, conveyors etc. You can modify the quanity of any of them if your levels use more or if you want to save some memory, just remember to update the respective counts to avoid errors.
+**POOLS** These are the object pools for enemies, particles, lava, conveyors etc. You can modify the quanity of any of them if your levels use more or if you want to save some memory, just remember to update the respective counts to avoid errors.
 
-**//USE_GRAVITY** 0/1 to set if particles created by the player getting killed should fall towards the start point, the BEND_POINT variable can be set to mark the point at which the strip of LEDs goes from been horizontal to vertical. The game is 1000 units wide (regardless of number of LED's) so 500 would be the mid point. If this is confusing just set USE_GRAVITY to 0
+**USE_GRAVITY** 0/1 to set if particles created by the player getting killed should fall towards the start point, the BEND_POINT variable can be set to mark the point at which the strip of LEDs goes from been horizontal to vertical. The game is 1000 units wide (regardless of number of LED's) so 500 would be the mid point. If this is confusing just set USE_GRAVITY to 0
 
 ##  Serial Port Options Menu (New!) ##
 Some very basic options can be used to adjust some values via the serial port over USB. An 
@@ -96,11 +93,9 @@ They all call different functions and variables to setup the level. Each one is 
 * offtime: How long the lava is ON for
 * offset: How long (ms) after the level starts before the lava turns on, use this to create patterns with multiple lavas
 
-**spawnConveyor(startPoint, endPoint, direction);** (2 conveyors max)
+**spawnConveyor(startPoint, endPoint, speed);** (2 conveyors max)
 * startPoint, endPoint: Same as lava
-* direction: the direction of travel 0/1
+* speed: The direction and speed of the travel. Negative moves to base and positive moves towards exit. Must be less than +/- max player speed.
 
 **spawnBoss(); ** (only one, don't edit boss level)
 * There are no parameters for a boss, they always spawn in the same place and have 3 lives. Tweak the values of Boss.h to modify
-
-Feel free to edit, comment on the YouTube video (link at top) if you have any questions.
