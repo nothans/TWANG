@@ -1,14 +1,23 @@
 /* 
 	TWANG 
 	
-	Original Code by Critters/TWANG	
+	Code at ..
+	
+	https://github.com/bdring/TWANG
+	
+	Based on original code by Critters/TWANG	
 	
 	https://github.com/Critters/TWANG
 	
 		
 	Latest Changes
-	- Made a better death animation with a bright flash at the beginning 
-	- Got rid of lava sound. It is not mixing well with other sounds on some levels
+	- brightness resets at each loadLevel. This allows temporary birightness changes
+	- Boss kill funeral screen is now brighter
+	- Tweaked a few levels to make them easier
+	- Boss level is a little harder (faster shooting)
+	- Additonal setup info now prints via serial port at startup (strip type, led count)
+	
+	
 */
 #define VERSION "2018-03-22"
 
@@ -231,8 +240,8 @@ RunningMedian MPUWobbleSamples = RunningMedian(5);
 void setup() {    
 	
     Serial.begin(115200);
-    Serial.print("\r\nTWANG VERSION: "); Serial.println(VERSION);
-		
+    //Serial.print("\r\nTWANG VERSION: "); Serial.println(VERSION);	
+	showSetupInfo();
 	
 	settings_eeprom_read();
 	show_settings_menu();
@@ -396,6 +405,7 @@ void loop() {
 // ---------------------------------
 void loadLevel(){    	
 	// leave these alone
+	FastLED.setBrightness(user_settings.led_brightness);
 	updateLives();
     cleanupLevel();    
     playerAlive = 1;
@@ -469,7 +479,7 @@ void loadLevel(){
             break;
         case 1:
             // Slow moving enemy			
-            spawnEnemy(900, 0, 1, 0);			
+            spawnEnemy(900, 0, 1, 0);				
             break;
         case 2:
             // Spawning enemies at exit every 2 seconds
@@ -516,19 +526,19 @@ void loadLevel(){
             spawnEnemy(900, 0, 0, 0);
             break;
 		case 8:   // spawn train;		
-			spawnPool[0].Spawn(900, 1000, 3, 0, 0);					
+			spawnPool[0].Spawn(900, 1300, 2, 0, 0);					
 			break;
-		case 9:   // spawn train skinny width;
+		case 9:   // spawn train skinny attack width;
 			attack_width = 32;
 			spawnPool[0].Spawn(900, 1800, 2, 0, 0);
 			break;
 		case 10:  // evil fast split spawner
-			spawnPool[0].Spawn(550, 1100, 3, 0, 0);
-			spawnPool[1].Spawn(550, 1100, 3, 1, 0);		
+			spawnPool[0].Spawn(550, 1500, 2, 0, 0);
+			spawnPool[1].Spawn(550, 1500, 2, 1, 0);
 			break;
 		case 11: // split spawner with exit blocking lava
-			spawnPool[0].Spawn(500, 1100, 3, 0, 0);
-			spawnPool[1].Spawn(500, 1100, 3, 1, 0);		
+			spawnPool[0].Spawn(500, 1200, 2, 0, 0);
+			spawnPool[1].Spawn(500, 1200, 2, 1, 0);		
 			spawnLava(900, 950, 2200, 800, 2000, Lava::OFF);
 			break;
         case 12:
@@ -548,9 +558,10 @@ void loadLevel(){
             break;
 		case 14:
 			// Sin enemy #2 (fast conveyor)
+			spawnEnemy(800, 1, 7, 275);
             spawnEnemy(700, 1, 7, 275);
-            spawnEnemy(500, 1, 5, 250);
-            spawnPool[0].Spawn(1000, 5500, 4, 0, 3000);
+            spawnEnemy(500, 1, 5, 250);			
+            spawnPool[0].Spawn(1000, 3000, 4, 0, 3000);
             spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
             spawnConveyor(100, 900, -6);
 			break;
@@ -570,9 +581,9 @@ void spawnBoss(){
 }
 
 void moveBoss(){
-    int spawnSpeed = 2500;
-    if(boss._lives == 2) spawnSpeed = 2000;
-    if(boss._lives == 1) spawnSpeed = 1500;
+    int spawnSpeed = 1800;
+    if(boss._lives == 2) spawnSpeed = 1600;
+    if(boss._lives == 1) spawnSpeed = 1000;
     spawnPool[0].Spawn(boss._pos, spawnSpeed, 3, 0, 0);
     spawnPool[1].Spawn(boss._pos, spawnSpeed, 3, 1, 0);
 }
@@ -891,19 +902,18 @@ void tickConveyors(){
 
 void tickBossKilled(long mm) // boss funeral
 {
+	static uint8_t gHue = 0; 
+	
+	FastLED.setBrightness(255); // super bright!
+	
 	int brightness = 0;
 	FastLED.clear();	
-	if(stageStartTime+500 > mm){
-		int n = max(map(((mm-stageStartTime)), 0, 500, NUM_LEDS, 0), 0);
-		for(int i = NUM_LEDS; i>= n; i--){
-			brightness = (sin(((i*10)+mm)/500.0)+1)*255;
-			leds[i].setHSV(brightness, 255, 50);
-		}
-		SFXbosskilled();
-	}else if(stageStartTime+6500 > mm){
-		for(int i = NUM_LEDS; i>= 0; i--){
-			brightness = (sin(((i*10)+mm)/500.0)+1)*255;
-			leds[i].setHSV(brightness, 255, 50);
+	
+	if(stageStartTime+6500 > mm){
+		gHue++;
+		fill_rainbow( leds, NUM_LEDS, gHue, 7); // FastLED's built in rainbow
+		if( random8() < 200) {  // add glitter
+			leds[ random16(NUM_LEDS) ] += CRGB::White;
 		}
 		SFXbosskilled();
 	}else if(stageStartTime+7000 > mm){
@@ -1270,6 +1280,22 @@ long map_constrain(long x, long in_min, long in_max, long out_min, long out_max)
 	return map(x, in_min, in_max, out_min, out_max);
 	
 		
+}
+
+void showSetupInfo()
+{
+	Serial.print("\r\nTWANG VERSION: "); Serial.println(VERSION);
+	
+	Serial.print("LED Type: ");
+	#ifdef USE_APA102
+		Serial.println("APA102 (Dotstar)");
+	#endif
+	
+	#ifdef USE_NEOPIXEL
+		Serial.println("WS2812 (Neopixel)");
+	#endif
+	
+	Serial.print("Number of LEDs: "); Serial.println(NUM_LEDS);
 }
 
 
