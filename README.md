@@ -3,7 +3,9 @@ An Arduino-based, 1D, LED loving, dungeon crawler. inspired by Line Wobbler by R
 
 This fork was done to incorporate feedback after several field tests. Details on the fork can be found at the [Buildlog.net Blog](http://www.buildlog.net/blog?s=twang)
 
-![TWANG LED Game](http://www.buildlog.net/blog/wp-content/uploads/2018/01/20180111_130909-1.jpg?s=200)
+Click image for video....
+
+[![TWANG32 Play Video](https://img.youtube.com/vi/RXpfa-ZvUMA/0.jpg)](https://www.youtube.com/watch?v=RXpfa-ZvUMA)
 
 
 ## Required libraries:
@@ -97,5 +99,5 @@ They all call different functions and variables to setup the level. Each one is 
 * startPoint, endPoint: Same as lava
 * speed: The direction and speed of the travel. Negative moves to base and positive moves towards exit. Must be less than +/- max player speed.
 
-**spawnBoss(); ** (only one, don't edit boss level)
+**spawnBoss();** (only one, don't edit boss level)
 * There are no parameters for a boss, they always spawn in the same place and have 3 lives. Tweak the values of Boss.h to modify
