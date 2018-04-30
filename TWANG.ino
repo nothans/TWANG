@@ -43,7 +43,7 @@
 
 
 // LED Strip Setup
-#define NUM_LEDS             (144 * 3)
+#define NUM_LEDS             144
 
 #if defined(ARDUINO_AVR_MEGA2560)
   // Arduino Mega 2560
