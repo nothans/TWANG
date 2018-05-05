@@ -3,7 +3,7 @@ An Arduino-based, 1D, LED loving, dungeon crawler. inspired by Line Wobbler by R
 
 This fork was done to incorporate feedback after several field tests. Details on the fork can be found at the [Buildlog.net Blog](http://www.buildlog.net/blog?s=twang)
 
-Click image for video....
+Click image for video....(ESP32 Version)
 
 [![TWANG32 Play Video](https://img.youtube.com/vi/RXpfa-ZvUMA/0.jpg)](https://www.youtube.com/watch?v=RXpfa-ZvUMA)
 
@@ -18,13 +18,20 @@ Click image for video....
 ## Hardware used:
 * Arduino MEGA
 * 3 LEDs for life indicator (optional) This fork displays the remaining lives on the LED strip.
-* LED light strip. The more the better, maximum of 1000. Tested with 1x & 2x 144/meter, 12x 60/meter and 5m x 114/meter strips. This has been tested with APA102C and Neopixel type strips. Anything compatible wiht the FastLED library should work.
+* LED light strip. (60 to 1000 LEDs) Tested with..... 
+  * 1 meter 60 LEDs (good)
+  * 1 meter 144 LEDs. (awesome. Great for running on table)
+  * 2 meter 288 LEDs. (awesome. The increased resolution makes the game a little easier to win)
+  * 5 meter 450 LEDs. (awesome, but too long for most locations)
+  * Virtually tested 1000. The game slows down at this count on Arduino (great on ESP32)
 * MPU6050 accelerometer
 * Spring doorstop, I used [these](http://smile.amazon.com/gp/product/B00J4Y5BU2)
 
 See [Buildlog.net Blog](http://www.buildlog.net/blog?s=twang) for more details.
 
-Super easy to use kits and ready to play units are available on [Tindie](https://www.tindie.com/products/33366583/twang-shield-kit/)
+Super **easy to use kits** and **ready to play units** are available on [Tindie](https://www.tindie.com/products/33366583/twang-shield-kit/)
+
+![](http://www.buildlog.net/blog/wp-content/uploads/2018/04/20180416_103412.jpg)
 
 ## Enclosure
 Files to print the original enclosure can be found [here](http://www.thingiverse.com/thing:1116899)
@@ -49,25 +56,15 @@ The game also has 3 regular LEDs for life indicators (the player gets 3 lives wh
 **USE_GRAVITY** 0/1 to set if particles created by the player getting killed should fall towards the start point, the BEND_POINT variable can be set to mark the point at which the strip of LEDs goes from been horizontal to vertical. The game is 1000 units wide (regardless of number of LED's) so 500 would be the mid point. If this is confusing just set USE_GRAVITY to 0
 
 ##  Serial Port Options Menu (New!) ##
-Some very basic options can be used to adjust some values via the serial port over USB. An 
-easy to use serial terminal is the Serial Console of the Arduino IDE. Open the Com Port that appears when you plug in the TWANG USB. 
-It typically will identify itself as an "Arduino Mega 2560". Set it up for 115200 baud and have it add a carriage return when sending. You
-should see this menu.
-```
-====== TWANG Settings Menu ========
-=    Current values are shown     =
-=   Send new values like 13=66    =
-=     with a carriage return      =
-===================================
+All of the basic setup options can now be set over the serial port. An easy to use serial terminal is the Serial Console of the Arduino IDE. Open the Com Port that appears when you plug in the TWANG USB. 
+Set it up for 115200 baud and have it add a carriage return when sending. You should see this menu.
 
-10=200 (LED Brightness 5-255)
-20=7 (Joystick Deadzone 3-12)
-21=30000 (Attack Sensitivity 20000-35000)
-30=10 (Audio Volume 0-10)
-40=3 (Lives per Level (3-9))
-```
-You can change any of these settings. Send 10=225 to change the LED brightness to 225 (on a 5-255 scale). These settings will be saved in
-the EEPROM memory of the TWANG and not be lost when you power down the TWANG.
+![](http://www.buildlog.net/blog/wp-content/uploads/2018/04/twang_console.png)
+
+
+You can change any of these settings. Send B=225 to change the LED brightness to 225 (on a 5-255 scale). These settings will be saved in the EEPROM memory of the TWANG and not be lost when you power down the TWANG.
+
+There are also 3 single character commands (?, R, P)
 
 ## Modifying / Creating levels
 Find the loadLevel() function, in there you can see a switch statment with the 10 levels I created. 
