@@ -10,16 +10,16 @@
 	https://github.com/Critters/TWANG
 	
 		
-	Latest Changes
-	- brightness resets at each loadLevel. This allows temporary birightness changes
-	- Boss kill funeral screen is now brighter
-	- Tweaked a few levels to make them easier
-	- Boss level is a little harder (faster shooting)
-	- Additonal setup info now prints via serial port at startup (strip type, led count)
+	
+	Changes on this revision
+	- At startup, if any EEPROM value is out of range, reset them all 
+	- LED Strip type can now be set by serial port
+	- LED Count can now be set by serial port
+	
 	
 	
 */
-#define VERSION "2018-03-22"
+#define VERSION "2018-04-16"
 
 // Required libs
 #include "FastLED.h"
@@ -41,10 +41,7 @@
 #include "Conveyor.h"
 #include "settings.h"
 
-
 // LED Strip Setup
-#define NUM_LEDS             144
-
 #if defined(ARDUINO_AVR_MEGA2560)
   // Arduino Mega 2560
   #define DATA_PIN             3
@@ -66,16 +63,7 @@
 #define USE_APA102
 //#define USE_NEOPIXEL
 
-#ifdef USE_APA102
-  #define LED_COLOR_ORDER      BGR // typically this will be the order, but switch it if not
-  #define CONVEYOR_BRIGHTNES 8
-  #define LAVA_OFF_BRIGHTNESS 4
-#endif
-
-#ifdef USE_NEOPIXEL
-	#define CONVEYOR_BRIGHTNES 40  // low neopixel values are nearly off, they need a higher value
-	#define LAVA_OFF_BRIGHTNESS 15
-#endif
+#define VIRTUAL_LED_COUNT 1000
 
 #if defined(TEENSYDUINO) && defined(__MK20DX256__) && defined(USE_PROPSHIELD)
   void LEDStripShow() {
@@ -97,6 +85,13 @@
 // what type of sound device ....pick one
 //#define USE_TONEAC
 #define USE_TEENSYAUDIO
+
+// the strips have different low level brightness.  WS2812 tends to fade out faster at the low end
+#define APA102_CONVEYOR_BRIGHTNES 8
+#define WS2812_CONVEYOR_BRIGHTNES 40
+
+#define APA102_LAVA_OFF_BRIGHTNESS 4
+#define WS2812_LAVA_OFF_BRIGHTNESS 15
 
 #if defined(USE_TONEAC)
 #include "toneAC.h"
@@ -147,7 +142,7 @@ void twangInitTone()                   {
 // GAME
 long previousMillis = 0;           // Time of the last redraw
 int levelNumber = 0;
-long lastInputTime = 0;
+
 #define TIMEOUT              30000  // time until screen saver
 
 iSin isin = iSin();
@@ -233,19 +228,15 @@ Boss boss = Boss();
 
 // MPU
 MPU6050 accelgyro;
-CRGB leds[NUM_LEDS];
+CRGB leds[VIRTUAL_LED_COUNT]; // this is set to the max, but the actual number used is set in FastLED.addLeds below
 RunningMedian MPUAngleSamples = RunningMedian(5);
 RunningMedian MPUWobbleSamples = RunningMedian(5);
 
 void setup() {    
 	
     Serial.begin(115200);
-    //Serial.print("\r\nTWANG VERSION: "); Serial.println(VERSION);	
-	showSetupInfo();
-	
 	settings_eeprom_read();
-	show_settings_menu();
-	
+	showSetupInfo();
 
     // MPU
     Wire.begin();
@@ -259,14 +250,13 @@ void setup() {
       pinMode(LEDENABLE_PIN, OUTPUT);
       digitalWrite(LEDENABLE_PIN, HIGH);
     #endif
-    #ifdef USE_APA102
-      FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, LED_COLOR_ORDER>(leds, NUM_LEDS);
-    #endif
-    #ifdef USE_NEOPIXEL
-      FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);      
-    #endif
-	
-    
+    if (user_settings.led_type == strip_APA102) {
+			FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, BGR>(leds, user_settings.led_count);
+		}
+		else {
+			FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, user_settings.led_count);
+		}
+
     FastLED.setBrightness(user_settings.led_brightness);
     FastLED.setDither(1);	
 
@@ -345,10 +335,10 @@ void loop() {
                 playerPosition -= moveAmount;
                 if(playerPosition < 0) playerPosition = 0;
 				// stop player from leaving if boss is alive
-				if (boss.Alive() && playerPosition >= 1000) // move player back
-					playerPosition = 999; //(NUM_LEDS - 1) * (1000.0/NUM_LEDS);
+				if (boss.Alive() && playerPosition >= VIRTUAL_LED_COUNT) // move player back
+					playerPosition = VIRTUAL_LED_COUNT - 1;
 					
-                if(playerPosition >= 1000 && !boss.Alive()) {
+                if(playerPosition >= VIRTUAL_LED_COUNT && !boss.Alive()) {
                     // Reached exit!
                     levelComplete();
                     return;
@@ -407,8 +397,8 @@ void loadLevel(){
 	// leave these alone
 	FastLED.setBrightness(user_settings.led_brightness);
 	updateLives();
-    cleanupLevel();    
-    playerAlive = 1;
+  cleanupLevel();    
+  playerAlive = 1;
 	lastLevel = false; // this gets changed on the boss level
 	
 	/// Defaults...OK to change the following items in the levels below
@@ -701,14 +691,14 @@ void tickStartup(long mm)
 	FastLED.clear();
 	if(stageStartTime+STARTUP_WIPEUP_DUR > mm) // fill to the top with green
 	{
-		int n = min(map(((mm-stageStartTime)), 0, STARTUP_WIPEUP_DUR, 0, NUM_LEDS), NUM_LEDS);  // fill from top to bottom
+		int n = min(map(((mm-stageStartTime)), 0, STARTUP_WIPEUP_DUR, 0, user_settings.led_count), user_settings.led_count);  // fill from top to bottom
 		for(int i = 0; i<= n; i++){			
 			leds[i] = CRGB(0, 255, 0);
 		}		
 	}
 	else if(stageStartTime+STARTUP_SPARKLE_DUR > mm) // sparkle the full green bar		
 	{
-		for(int i = 0; i< NUM_LEDS; i++){		 
+		for(int i = 0; i< user_settings.led_count; i++){		 
 			if(random8(30) < 28)
 				leds[i] = CRGB(0, 255, 0);  // most are green
 			else {
@@ -719,10 +709,10 @@ void tickStartup(long mm)
 	}
 	else if (stageStartTime+STARTUP_FADE_DUR > mm) // fade it out to bottom
 	{
-		int n = max(map(((mm-stageStartTime)), STARTUP_SPARKLE_DUR, STARTUP_FADE_DUR, 0, NUM_LEDS), 0);  // fill from top to bottom
+		int n = max(map(((mm-stageStartTime)), STARTUP_SPARKLE_DUR, STARTUP_FADE_DUR, 0, user_settings.led_count), 0);  // fill from top to bottom
 		int brightness = max(map(((mm-stageStartTime)), STARTUP_SPARKLE_DUR, STARTUP_FADE_DUR, 255, 0), 0);
 		
-		for(int i = n; i< NUM_LEDS; i++){					 
+		for(int i = n; i< user_settings.led_count; i++){					 
 			leds[i] = CRGB(0, brightness, 0);
 		}		
 	}	
@@ -797,7 +787,7 @@ void drawPlayer(){
 
 void drawExit(){
     if(!boss.Alive()){
-        leds[NUM_LEDS-1] = CRGB(0, 0, 255);
+        leds[user_settings.led_count-1] = CRGB(0, 0, 255);
     }
 }
 
@@ -816,6 +806,15 @@ void tickSpawners(){
 void tickLava(){
     int A, B, p, i, brightness, flicker;
     long mm = millis();
+		uint8_t lava_off_brightness;
+		
+		if (user_settings.led_type == strip_APA102)
+			lava_off_brightness = APA102_LAVA_OFF_BRIGHTNESS;
+		else
+			lava_off_brightness = WS2812_LAVA_OFF_BRIGHTNESS;
+			
+		
+		
     Lava LP;
     for(i = 0; i<LAVA_COUNT; i++){        
         LP = lavaPool[i];
@@ -828,8 +827,8 @@ void tickLava(){
                     LP._lastOn = mm;
                 }
                 for(p = A; p<= B; p++){
-					flicker = random8(LAVA_OFF_BRIGHTNESS);
-                    leds[p] = CRGB(LAVA_OFF_BRIGHTNESS+flicker, (LAVA_OFF_BRIGHTNESS+flicker)/1.5, 0);
+					flicker = random8(lava_off_brightness);
+                    leds[p] = CRGB(lava_off_brightness+flicker, (lava_off_brightness+flicker)/1.5, 0);
                 }
             }else if(LP._state == Lava::ON){
                 if(LP._lastOn + LP._ontime < mm){
@@ -873,6 +872,12 @@ void tickConveyors(){
     int b, speed, n, i, ss, ee, led;
     long m = 10000+millis();
     playerPositionModifier = 0;
+		uint8_t conveyor_brightness;
+		
+		if (user_settings.led_type == strip_APA102)
+			conveyor_brightness = APA102_CONVEYOR_BRIGHTNES;
+		else
+			conveyor_brightness = WS2812_CONVEYOR_BRIGHTNES;
 	
 	int levels = 5; // brightness levels in conveyor 	
 	
@@ -888,7 +893,7 @@ void tickConveyors(){
                 if(speed < 0) 
 					n = (led + (m/100)) % levels;
 				
-				b = map(n, 5, 0, 0, CONVEYOR_BRIGHTNES);
+				b = map(n, 5, 0, 0, conveyor_brightness);
                 if(b > 0) 
 					leds[led] = CRGB(0, 0, b);
             }
@@ -911,13 +916,13 @@ void tickBossKilled(long mm) // boss funeral
 	
 	if(stageStartTime+6500 > mm){
 		gHue++;
-		fill_rainbow( leds, NUM_LEDS, gHue, 7); // FastLED's built in rainbow
+		fill_rainbow( leds, user_settings.led_count, gHue, 7); // FastLED's built in rainbow
 		if( random8() < 200) {  // add glitter
-			leds[ random16(NUM_LEDS) ] += CRGB::White;
+			leds[ random16(user_settings.led_count) ] += CRGB::White;
 		}
 		SFXbosskilled();
 	}else if(stageStartTime+7000 > mm){
-		int n = max(map(((mm-stageStartTime)), 5000, 5500, NUM_LEDS, 0), 0);
+		int n = max(map(((mm-stageStartTime)), 5000, 5500, user_settings.led_count, 0), 0);
 		for(int i = 0; i< n; i++){
 			brightness = (sin(((i*10)+mm)/500.0)+1)*255;
 			leds[i].setHSV(brightness, 255, 50);
@@ -956,7 +961,7 @@ void tickGameover(long mm) {
 	if(stageStartTime+GAMEOVER_SPREAD_DURATION > mm) // Spread red from player position to top and bottom
 	{
 	  // fill to top
-	  int n = max(map(((mm-stageStartTime)), 0, GAMEOVER_SPREAD_DURATION, getLED(playerPosition), NUM_LEDS), 0);
+	  int n = max(map(((mm-stageStartTime)), 0, GAMEOVER_SPREAD_DURATION, getLED(playerPosition), user_settings.led_count), 0);
 	  for(int i = getLED(playerPosition); i<= n; i++){
 			leds[i] = CRGB(255, 0, 0);
 	  }
@@ -969,7 +974,7 @@ void tickGameover(long mm) {
 	}
 	else if(stageStartTime+GAMEOVER_FADE_DURATION > mm)  // fade down to bottom and fade brightness
 	{
-	  int n = max(map(((mm-stageStartTime)), GAMEOVER_FADE_DURATION, GAMEOVER_SPREAD_DURATION, 0, NUM_LEDS), 0);
+	  int n = max(map(((mm-stageStartTime)), GAMEOVER_FADE_DURATION, GAMEOVER_SPREAD_DURATION, 0, user_settings.led_count), 0);
 	  brightness =  map(((mm-stageStartTime)), GAMEOVER_SPREAD_DURATION, GAMEOVER_FADE_DURATION, 255, 0);
 
 	  for(int i = 0; i<= n; i++){
@@ -983,13 +988,13 @@ void tickGameover(long mm) {
 void tickWin(long mm) {
 	FastLED.clear();
 	if(stageStartTime+WIN_FILL_DURATION > mm){
-		int n = max(map(((mm-stageStartTime)), 0, WIN_FILL_DURATION, NUM_LEDS, 0), 0);  // fill from top to bottom
-		for(int i = NUM_LEDS; i>= n; i--){
+		int n = max(map(((mm-stageStartTime)), 0, WIN_FILL_DURATION, user_settings.led_count, 0), 0);  // fill from top to bottom
+		for(int i = user_settings.led_count; i>= n; i--){
 			leds[i] = CRGB(0, 255, 0);
 		}
 		SFXwin();
 	}else if(stageStartTime+WIN_CLEAR_DURATION > mm){
-		int n = max(map(((mm-stageStartTime)), WIN_FILL_DURATION, WIN_CLEAR_DURATION, NUM_LEDS, 0), 0);  // clear from top to bottom
+		int n = max(map(((mm-stageStartTime)), WIN_FILL_DURATION, WIN_CLEAR_DURATION, user_settings.led_count, 0), 0);  // clear from top to bottom
 		for(int i = 0; i< n; i++){			
 			leds[i] = CRGB(0, 255, 0);
 		}
@@ -1042,7 +1047,7 @@ void drawAttack(){
 
 int getLED(int pos){
     // The world is 1000 pixels wide, this converts world units into an LED number
-    return constrain((int)map(pos, 0, 1000, 0, NUM_LEDS-1), 0, NUM_LEDS-1);
+    return constrain((int)map(pos, 0, VIRTUAL_LED_COUNT, 0, user_settings.led_count-1), 0, user_settings.led_count-1);
 }
 
 bool inLava(int pos){
@@ -1115,7 +1120,7 @@ void screenSaverTick(){
 	
 	SFXcomplete(); // make sure there is not sound...play testing showed this to be a problem
 
-    for(i = 0; i<NUM_LEDS; i++){
+    for(i = 0; i<user_settings.led_count; i++){
         leds[i].nscale8(250);
     }
     if(mode == 0){
@@ -1123,7 +1128,7 @@ void screenSaverTick(){
         n = (mm/250)%10;
         b = 10+((sin(mm/500.00)+1)*20.00);
         c = 20+((sin(mm/5000.00)+1)*33);
-        for(i = 0; i<NUM_LEDS; i++){
+        for(i = 0; i<user_settings.led_count; i++){
             if(i%10 == n){
                 leds[i] = CHSV( c, 255, 150);
             }
@@ -1131,7 +1136,7 @@ void screenSaverTick(){
     }else if(mode >= 1){
         // Random flashes
         randomSeed(mm);
-        for(i = 0; i<NUM_LEDS; i++){
+        for(i = 0; i<user_settings.led_count; i++){
             if(random8(20) == 0){
                 leds[i] = CHSV( 25, 255, 100);
             }
@@ -1284,18 +1289,8 @@ long map_constrain(long x, long in_min, long in_max, long out_min, long out_max)
 
 void showSetupInfo()
 {
-	Serial.print("\r\nTWANG VERSION: "); Serial.println(VERSION);
-	
-	Serial.print("LED Type: ");
-	#ifdef USE_APA102
-		Serial.println("APA102 (Dotstar)");
-	#endif
-	
-	#ifdef USE_NEOPIXEL
-		Serial.println("WS2812 (Neopixel)");
-	#endif
-	
-	Serial.print("Number of LEDs: "); Serial.println(NUM_LEDS);
+	Serial.print("\r\nTWANG VERSION: "); Serial.println(VERSION);	
+	show_settings_menu();
 }
 
 
