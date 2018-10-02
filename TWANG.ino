@@ -55,10 +55,7 @@
 #define USE_TONEAC
 
 // the strips have different low level brightness.  WS2812 tends to fade out faster at the low end
-#define APA102_CONVEYOR_BRIGHTNES 8
 #define WS2812_CONVEYOR_BRIGHTNES 40
-
-#define APA102_LAVA_OFF_BRIGHTNESS 4
 #define WS2812_LAVA_OFF_BRIGHTNESS 15
 
 #if defined(USE_TONEAC)
@@ -186,13 +183,7 @@ void setup() {
     // initialize sound device (if necessary)
     twangInitTone();
 
-    // Fast LED
-		if (user_settings.led_type == strip_APA102) {
-			FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, BGR>(leds, user_settings.led_count);
-		}
-		else {
-			FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, user_settings.led_count);
-		}
+		FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, user_settings.led_count);
 		
     FastLED.setBrightness(user_settings.led_brightness);
     FastLED.setDither(1);	
@@ -207,7 +198,7 @@ void setup() {
     
     stage = STARTUP;
     stageStartTime = millis();
-    lives = user_settings.lives_per_level;
+    lives = user_settings.lives_per_level;	
 }
 
 void loop() {
@@ -316,7 +307,6 @@ void loop() {
 			else
 			{
 				FastLED.clear();	
-				save_game_stats(false);
                 levelNumber = 0;
 				lives = user_settings.lives_per_level;              
                 loadLevel();
@@ -576,7 +566,6 @@ void levelComplete(){
     //if(levelNumber == LEVEL_COUNT){
     if (lastLevel) {
 		stage = BOSS_KILLED;
-		save_game_stats(true);
 	}
 	if (levelNumber != 0)  // no points for the first level
 	{			
@@ -745,10 +734,7 @@ void tickLava(){
     long mm = millis();
 		uint8_t lava_off_brightness;
 		
-		if (user_settings.led_type == strip_APA102)
-			lava_off_brightness = APA102_LAVA_OFF_BRIGHTNESS;
-		else
-			lava_off_brightness = WS2812_LAVA_OFF_BRIGHTNESS;
+		lava_off_brightness = WS2812_LAVA_OFF_BRIGHTNESS;
 			
 		
 		
@@ -811,10 +797,7 @@ void tickConveyors(){
     playerPositionModifier = 0;
 		uint8_t conveyor_brightness;
 		
-		if (user_settings.led_type == strip_APA102)
-			conveyor_brightness = APA102_CONVEYOR_BRIGHTNES;
-		else
-			conveyor_brightness = WS2812_CONVEYOR_BRIGHTNES;
+		conveyor_brightness = WS2812_CONVEYOR_BRIGHTNES;
 	
     int levels = 5; // brightness levels in conveyor 	
 	
@@ -1020,31 +1003,14 @@ void updateLifeLEDs(){
 }
 
 void updateLives(){
-	#ifdef USE_LIFELEDS
-		// Updates the life LEDs to show how many lives the player has left
-		for(int i = 0; i<LIFE_LEDS; i++){
-		   digitalWrite(lifeLEDs[i], lives>i?HIGH:LOW);
-		}
-	#endif
-	
-	drawLives();
-}
-
-void save_game_stats(bool bossKill)
-{
-	
-	
-	
-	user_settings.games_played += 1;
-	user_settings.total_points += score;
-	if (score > user_settings.high_score)
-		user_settings.high_score += score;
-	if (bossKill)
-		user_settings.boss_kills += 1;
-	
-	show_game_stats();
-	
-	settings_eeprom_write();
+    #ifdef USE_LIFELEDS
+        // Updates the life LEDs to show how many lives the player has left
+        for(int i = 0; i<LIFE_LEDS; i++){
+           digitalWrite(lifeLEDs[i], lives>i?HIGH:LOW);
+        }
+    #endif
+    
+    drawLives();
 }
 
 // ---------------------------------
@@ -1149,7 +1115,7 @@ void SFXFreqSweepWarble(int duration, int elapsedTime, int freqStart, int freqEn
    freqStart    = the beginning frequency
    freqEnd      = the ending frequency
    noiseFactor  = the amount of noise to added/subtracted (0 disables)
-   
+
 
 */
 void SFXFreqSweepNoise(int duration, int elapsedTime, int freqStart, int freqEnd, uint8_t noiseFactor)

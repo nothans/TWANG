@@ -9,9 +9,9 @@
 #define SETTINGS_VERSION 4
 
 // LED
-#define NUM_LEDS             288
+#define NUM_LEDS             120
 #define MIN_LEDS				60
-#define MAX_LEDS				1000
+#define MAX_LEDS				180
 
 #define BRIGHTNESS           150
 #define MIN_BRIGHTNESS			10
@@ -54,8 +54,6 @@ enum ErrorNums{
 typedef struct {
 	uint8_t settings_version; // stores the settings format version 	
 	
-	uint8_t led_type;  // dotstar, neopixel
-	
 	uint16_t led_count;
 	uint8_t led_brightness; 	
 	
@@ -64,19 +62,13 @@ typedef struct {
 	
 	uint8_t audio_volume;
 	
-	uint8_t lives_per_level;	
-	
-	// saved statistics
-	uint16_t games_played;
-	uint32_t total_points;
-	uint16_t high_score;
-	uint16_t boss_kills;
+	uint8_t lives_per_level;
 	
 }settings_t;
 
 settings_t user_settings;
 
-#define READ_BUFFER_LEN 10
+#define READ_BUFFER_LEN 8
 #define CARRIAGE_RETURN 13
 char readBuffer[READ_BUFFER_LEN];
 uint8_t readIndex = 0;
@@ -91,7 +83,6 @@ void change_setting(char *line);
 void settings_eeprom_write();
 void settings_eeprom_write();
 void printError(int reason);
-void show_game_stats();
 
 
 void reset_cpu()
@@ -118,15 +109,6 @@ void processSerial(char inChar)
 			case 'R': // reset to defaults
 				readIndex = 0;
 				reset_settings();
-				return;
-			break;
-			
-			case 'P': // reset play stats
-				user_settings.games_played = 0;
-				user_settings.total_points = 0;
-				user_settings.high_score = 0;	
-				user_settings.boss_kills = 0;
-				settings_eeprom_write();
 				return;
 			break;
 			
@@ -159,18 +141,17 @@ void processSerial(char inChar)
 void show_settings_menu() {
 	
 	
-       Serial.print(F("\r\nT="));
-       Serial.print(F(user_settings.led_type));
-       Serial.println(F(" (LED Type  0=APA102/Dotstar, 1=WS2812/Neopixel ... forces restart)"));
 	Serial.println(F("\r\n====== TWANG Settings Menu ========"));
 	Serial.println(F("=    Current values are shown     ="));
 	Serial.println(F("=   Send new values like B=150    ="));
 	Serial.println(F("=     with a carriage return      ="));
 	Serial.println(F("==================================="));
 	
-	Serial.print(F("\r\nC="));	
+	Serial.print(F("\r\nC="));
+	
+	Serial.print(F("C="));	
 	Serial.print(user_settings.led_count);
-	Serial.println(F(" (LED Count 100-1000.. forces restart if increased above initial val.)"));
+	Serial.println(F(" (LED Count 100-180.. forces restart if increased above initial val.)"));
 	
 	Serial.print(F("B="));	
 	Serial.print(user_settings.led_brightness);
@@ -195,25 +176,12 @@ void show_settings_menu() {
 	Serial.println(F("\r\n(Send...)"));
 	Serial.println(F("  ? to show current settings"));
 	Serial.println(F("  R to reset everything to defaults"));
-	Serial.println(F("  P to reset play statistics"));
 	
-}
-
-void show_game_stats()
-{
-	Serial.println(F("\r\n ===== Play statistics ======"));
-	Serial.print(F("Games played: "));Serial.println(user_settings.games_played);
-	if (user_settings.games_played > 0)	{
-		Serial.print(F("Average Score: "));Serial.println(user_settings.total_points / user_settings.games_played);
-	}
-	Serial.print(F("High Score: "));Serial.println(user_settings.high_score);
-	Serial.print(F("Boss kills: "));Serial.println(user_settings.boss_kills);
 }
 
 void reset_settings() {
 	user_settings.settings_version = SETTINGS_VERSION;
 	
-	user_settings.led_type = strip_APA102;
 	user_settings.led_count = NUM_LEDS;
 	user_settings.led_brightness = BRIGHTNESS;
 	
@@ -223,11 +191,6 @@ void reset_settings() {
 	user_settings.audio_volume = MAX_VOLUME;
 	
 	user_settings.lives_per_level = LIVES_PER_LEVEL;
-	
-	user_settings.games_played = 0;
-	user_settings.total_points = 0;
-	user_settings.high_score = 0;	
-	user_settings.boss_kills = 0;
 	
 	settings_eeprom_write();
 	
@@ -267,12 +230,6 @@ void change_setting(char *line) {
 	switch (param) {		 
 		
 		lastInputTime = millis(); // reset screensaver count		
-
-		case 'T': // LED Type
-				user_settings.led_type = constrain(newValue, strip_APA102, strip_WS2812);
-				settings_eeprom_write();
-				reset_cpu();
-		break;
 		
 		case 'C': // LED Count
 				user_settings.led_count = constrain(newValue, MIN_LEDS, MAX_LEDS);
@@ -339,8 +296,6 @@ void settings_eeprom_read()
 	memcpy((char*)&user_settings, temp, sizeof(user_settings));
 	
 	// if any values are out of range, reset them all	
-	if (user_settings.led_type < strip_APA102 || user_settings.led_type > strip_WS2812)
-		read_fail = true;
 	
 	if (user_settings.led_count < MIN_LEDS || user_settings.led_count > MAX_LEDS)
 		read_fail = true;	
