@@ -110,7 +110,7 @@ void processSerial(char inChar)
 		switch(readBuffer[readIndex]) {
 			case '?':// show settings
 				readIndex = 0;
-				Serial.print("TWANG VERSION: "); Serial.println(VERSION);
+				Serial.print(F("TWANG VERSION: ")); Serial.println(F(VERSION));
 				show_settings_menu();
 				return;
 			break;
@@ -159,56 +159,55 @@ void processSerial(char inChar)
 void show_settings_menu() {
 	
 	
-	Serial.println("\r\n====== TWANG Settings Menu ========");
-	Serial.println("=    Current values are shown     =");
-	Serial.println("=   Send new values like B=150    =");
-	Serial.println("=     with a carriage return      =");
-	Serial.println("===================================");
+       Serial.print(F("\r\nT="));
+       Serial.print(F(user_settings.led_type));
+       Serial.println(F(" (LED Type  0=APA102/Dotstar, 1=WS2812/Neopixel ... forces restart)"));
+	Serial.println(F("\r\n====== TWANG Settings Menu ========"));
+	Serial.println(F("=    Current values are shown     ="));
+	Serial.println(F("=   Send new values like B=150    ="));
+	Serial.println(F("=     with a carriage return      ="));
+	Serial.println(F("==================================="));
 	
-	Serial.print("\r\nT=");
-	Serial.print(user_settings.led_type);
-	Serial.println(" (LED Type  0=APA102/Dotstar, 1=WS2812/Neopixel ... forces restart)");
-	
-	Serial.print("C=");	
+	Serial.print(F("\r\nC="));	
 	Serial.print(user_settings.led_count);
-	Serial.println(" (LED Count 100-1000.. forces restart if increased above initial val.)");
+	Serial.println(F(" (LED Count 100-1000.. forces restart if increased above initial val.)"));
 	
-	Serial.print("B=");	
+	Serial.print(F("B="));	
 	Serial.print(user_settings.led_brightness);
-	Serial.println(" (LED Brightness 5-255)");
+	Serial.println(F(" (LED Brightness 10-255)"));
 	
-	Serial.print("S=");
+	Serial.print(F("S="));
 	Serial.print(user_settings.audio_volume);
-	Serial.println(" (Sound Volume 0-10)");
+	Serial.println(F(" (Sound Volume 0-10)"));
 	
-	Serial.print("D=");
+	Serial.print(F("D="));
 	Serial.print(user_settings.joystick_deadzone);
-	Serial.println(" (Joystick Deadzone 3-12)");
+	Serial.println(F(" (Joystick Deadzone 3-12)"));
 	
-	Serial.print("A=");
+	Serial.print(F("A="));
 	Serial.print(user_settings.attack_threshold);
-	Serial.println(" (Attack Sensitivity 20000-35000)");	
+	Serial.println(F(" (Attack Sensitivity 20000-35000)"));	
 	
-	Serial.print("L=");
+	Serial.print(F("L="));
 	Serial.print(user_settings.lives_per_level);
-	Serial.println(" (Lives per Level (3-9))");		
+	Serial.println(F(" (Lives per Level (3-9))"));		
 	
-	Serial.println("\r\n(Send...)");
-	Serial.println("  ? to show current settings");
-	Serial.println("  R to reset everything to defaults");
-	Serial.println("  P to reset play statistics");
+	Serial.println(F("\r\n(Send...)"));
+	Serial.println(F("  ? to show current settings"));
+	Serial.println(F("  R to reset everything to defaults"));
+	Serial.println(F("  P to reset play statistics"));
 	
 }
 
 void show_game_stats()
 {
-	Serial.println("\r\n ===== Play statistics ======");
-	Serial.print("Games played: ");Serial.println(user_settings.games_played);
+	Serial.println(F("\r\n ===== Play statistics ======"));
+	Serial.print(F("Games played: "));Serial.println(user_settings.games_played);
 	if (user_settings.games_played > 0)	{
-		Serial.print("Average Score: ");Serial.println(user_settings.total_points / user_settings.games_played);
+		Serial.print(F("Average Score: "));Serial.println(user_settings.total_points / user_settings.games_played);
 	}
-	Serial.print("High Score: ");Serial.println(user_settings.high_score);
-	Serial.print("Boss kills: ");Serial.println(user_settings.boss_kills);
+	Serial.print(F("High Score: "));Serial.println(user_settings.high_score);
+	Serial.print(F("Boss kills: "));Serial.println(user_settings.boss_kills);
 }
 
 void reset_settings() {
@@ -242,7 +241,7 @@ void change_setting(char *line) {
   uint16_t newValue;
 	
 	if (readBuffer[1] != '='){  // check if the equals sign is there
-		Serial.print("Missing '=' in command");
+		Serial.print(F("Missing '=' in command"));
 		readIndex = 0;
 		return;
   }
@@ -253,7 +252,7 @@ void change_setting(char *line) {
 		if (isDigit(readBuffer[i+2]))
 			setting_val[i] = readBuffer[i+2];
 		else {
-			Serial.println("Invalid setting value");
+			Serial.println(F("Invalid setting value"));
 			return;
 			
 		}			
@@ -309,7 +308,7 @@ void change_setting(char *line) {
 		break;	
 		
 		default:
-			Serial.print("Command Error: ");
+			Serial.print(F("Command Error: "));
 			Serial.println(readBuffer[0]);
 			return;
 		break;
@@ -326,8 +325,8 @@ void settings_eeprom_read()
 	bool read_fail = false;
 
 	if (ver != SETTINGS_VERSION) {
-		Serial.println("Error: Reading EEPROM settings failed");
-		Serial.println("Loading defaults");
+		Serial.println(F("Error: Reading EEPROM settings failed"));
+		Serial.println(F("Loading defaults"));
 		reset_settings();		
 		return;
 	}				
@@ -382,13 +381,13 @@ void settings_eeprom_write() {
 void printError(int reason) {
 	switch(reason) {
 		case ERR_SETTING_NUM:
-			Serial.print("Error: Invalid setting number");
+			Serial.print(F("Error: Invalid setting number"));
 		break;
 		case ERR_SETTING_RANGE:
-			Serial.print("Error: Setting out of range");
+			Serial.print(F("Error: Setting out of range"));
 		break;
 		default:
-			Serial.print("Error:");Serial.println(reason);
+			Serial.print(F("Error:"));Serial.println(reason);
 		break;
 	}
 }
