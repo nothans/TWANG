@@ -1229,7 +1229,7 @@ int map_constrain(int x, int in_min, int in_max, int out_min, int out_max)
 
 void showSetupInfo()
 {
-	Serial.print("\r\nTWANG VERSION: "); Serial.println(VERSION);	
+	Serial.print(F("\r\nTWANG VERSION: ")); Serial.println(F(VERSION));	
 	show_settings_menu();
 }
 
