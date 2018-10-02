@@ -1,4 +1,6 @@
 #include "Arduino.h"
+
+#include <stdint.h> // uint8_t type variables
 /*
 
 A spawn pool is a point which spawns enemies forever
@@ -12,20 +14,20 @@ direction: 0=towards start, 1=away from start
 class Spawner
 {
   public:
-    void Spawn(int pos, int rate, int speed, int dir, long activate);  
+    void Spawn(int pos, int rate, int speed, bool dir, long activate);  
     void Kill();
-    int Alive();
+    bool Alive();
     int _pos;
     int _rate;
     int _speed;
-    int _dir;
+    bool _dir;
     long _lastSpawned;
     long _activate;
   private:
-    int _alive;
+    bool _alive;
 };
 
-void Spawner::Spawn(int pos, int rate, int speed, int dir, long activate){
+void Spawner::Spawn(int pos, int rate, int speed, bool dir, long activate){
     _pos = pos;
     _rate = rate;
     _speed = speed;
@@ -39,6 +41,6 @@ void Spawner::Kill(){
     _lastSpawned = 0;
 }
 
-int Spawner::Alive(){
+bool Spawner::Alive(){
     return _alive;
 }

@@ -1,4 +1,7 @@
 #include "Arduino.h"
+
+#include <stdint.h> // uint8_t type variables
+
 #define FRICTION 1
 
 class Particle
@@ -9,11 +12,11 @@ class Particle
     void Kill();
     bool Alive();
     int _pos;
-    int _power;
+    uint8_t _power;
   private:
-    int _life;
-    int _alive;
-    int _sp;
+    uint8_t _life;
+    bool _alive;
+    uint8_t _sp;
 };
 
 void Particle::Spawn(int pos){

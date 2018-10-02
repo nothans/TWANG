@@ -85,19 +85,19 @@
 
 // GAME
 long previousMillis = 0;           // Time of the last redraw
-int levelNumber = 0;
+uint8_t levelNumber = 0;
 
 #define TIMEOUT              30000  // time until screen saver
 
 iSin isin = iSin();
 
 
-int joystickTilt = 0;              // Stores the angle of the joystick
+uint8_t joystickTilt = 0;              // Stores the angle of the joystick
 int joystickWobble = 0;            // Stores the max amount of wobble
 
 // WOBBLE ATTACK
 #define DEFAULT_ATTACK_WIDTH 70  // Width of the wobble attack, world is 1000 wide
-int attack_width = DEFAULT_ATTACK_WIDTH;     
+uint8_t attack_width = DEFAULT_ATTACK_WIDTH;
 #define ATTACK_DURATION     500    // Duration of a wobble attack (ms)
 long attackMillis = 0;             // Time the attack started
 bool attacking = 0;                // Is the attack in progress?
@@ -536,7 +536,7 @@ void spawnEnemy(int pos, int dir, int speed, int wobble){
     }
 }
 
-void spawnLava(int left, int right, int ontime, int offtime, int offset, int state){
+void spawnLava(int left, int right, int ontime, int offtime, int offset, bool state){
     for(int i = 0; i<LAVA_COUNT; i++){
         if(!lavaPool[i].Alive()){
             lavaPool[i].Spawn(left, right, ontime, offtime, offset, state);
@@ -1212,7 +1212,7 @@ void SFXcomplete(){
 /*
 	This works just like the map function except x is constrained to the range of in_min and in_max
 */
-long map_constrain(long x, long in_min, long in_max, long out_min, long out_max)
+int map_constrain(int x, int in_min, int in_max, int out_min, int out_max)
 {
 	// constrain the x value to be between in_min and in_max
 	if (in_max > in_min){   // map allows min to be larger than max, but constrain does not

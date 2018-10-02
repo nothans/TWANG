@@ -1,5 +1,7 @@
 #include "Arduino.h"
 
+#include <stdint.h> // uint8_t type variables
+
 class Boss
 {
   public:
@@ -8,7 +10,7 @@ class Boss
     void Kill();
     bool Alive();
     int _pos;
-    int _lives;
+    uint8_t _lives;
     int _ticks;
   private:
     bool _alive;

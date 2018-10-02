@@ -1,5 +1,7 @@
 #include "Arduino.h"
 
+#include <stdint.h> // uint8_t type variables
+
 class Enemy
 {
   public:
@@ -8,12 +10,12 @@ class Enemy
     void Kill();
     bool Alive();
     int _pos;
-    int _wobble;
-    int playerSide;
+    uint8_t _wobble;
+    uint8_t playerSide;
   private:
-    int _dir;
+    bool _dir;
     int _speed;
-    int _alive;
+    bool _alive;
     int _origin;
 };
 
