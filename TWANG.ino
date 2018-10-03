@@ -15,8 +15,17 @@
   - At startup, if any EEPROM value is out of range, reset them all 
   - LED Strip type can now be set by serial port
   - LED Count can now be set by serial port
+
+  CONNECTION for Arduino Nano:
+    Pins D2         LED data pin
+    Pins D3         LED clock pin
+    Pins D5 & 6 & 7 Life LEDs
+    Pins D9 & 10    Loudspeaker
+    Pins A4         Gyroscope SDA
+    Pins A5         Gyroscope SCL
+
 */
-#define VERSION "2018-04-16"
+#define VERSION "2018-10-04"
 
 // Required libs
 #include "FastLED.h"
@@ -43,13 +52,18 @@
 // Arduino Mega 2560
 #define DATA_PIN             3
 #define CLOCK_PIN            4   // ignored for Neopixel
+#elif defined(ARDUINO_AVR_NANO)
+// Arduino Mega 328
+#define DATA_PIN             2
+#define CLOCK_PIN            3   // ignored for Neopixel
 #else
-#error "Please define DATA_PIN and CLOCK_PIN for this board."
+#error "Please define DATA_PIN and CLOCK_PIN for your board."
 #endif
 
-#define VIRTUAL_LED_COUNT 1000
 
-//#define USE_LIFELEDS  // uncomment this to make Life LEDs avilable (not used in the B. Dring enclosure)
+#define VIRTUAL_LED_COUNT 180
+
+#define USE_LIFELEDS  // uncomment this to make Life LEDs avilable (not used in the B. Dring enclosure)
 
 // what type of sound device ....pick one
 #define USE_TONEAC
@@ -75,7 +89,7 @@
 #define MIN_REDRAW_INTERVAL  16    // Min redraw interval (ms) 33 = 30fps / 16 = 63fps
 #define USE_GRAVITY          0     // 0/1 use gravity (LED strip going up wall)
 #define BEND_POINT           750   // 0/1000 point at which the LED strip goes up the wall
-//#define USE_LIFELEDS  // uncomment this to make Life LEDs available (not used in the B. Dring enclosure)
+#define USE_LIFELEDS  // uncomment this to make Life LEDs available (not used in the B. Dring enclosure)
 
 // GAME
 long previousMillis = 0;           // Time of the last redraw
@@ -131,7 +145,7 @@ bool lastLevel = false;
 
 #ifdef USE_LIFELEDS
 	#define LIFE_LEDS 3
-	int lifeLEDs[LIFE_LEDS] = {7, 6, 5}; // these numbers are Arduino GPIO numbers...this is not used in the B. Dring enclosure design
+	const PROGMEM int lifeLEDs[LIFE_LEDS] = {7, 6, 5}; // these numbers are Arduino GPIO numbers...this is not used in the B. Dring enclosure design
 #endif
 
 
@@ -142,9 +156,11 @@ Enemy enemyPool[ENEMY_COUNT] = {
 };
 
 
-#define PARTICLE_COUNT 40
+#define PARTICLE_COUNT 20
+//#define PARTICLE_COUNT 40
 Particle particlePool[PARTICLE_COUNT] = {
-    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle()
+    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle() 
+    //Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle()
 };
 
 #define SPAWN_COUNT 2
@@ -189,10 +205,10 @@ void setup() {
     FastLED.setDither(1);	
 
     // Life LEDs
-	#ifdef USE_LIFELEDS
-    for(int i = 0; i<LIFE_LEDS; i++){
-        pinMode(lifeLEDs[i], OUTPUT);
-        digitalWrite(lifeLEDs[i], HIGH);
+    #ifdef USE_LIFELEDS
+    for(uint8_t i = 0; i<LIFE_LEDS; i++){
+        pinMode(pgm_read_byte_near(lifeLEDs[i]), OUTPUT);
+        digitalWrite(pgm_read_byte_near(lifeLEDs[i]), HIGH);
     }
     #endif
     
@@ -288,17 +304,17 @@ void loop() {
             drawExit();
         }else if(stage == DEAD){
             // DEAD			
-            SFXdead();
+            SFXdead();			
             FastLED.clear();
             tickDie(mm);
             if(!tickParticles()){
                 loadLevel();
             }
         }else if(stage == WIN){
-            // LEVEL COMPLETE
+            // LEVEL COMPLETE   
             tickWin(mm);
         }else if(stage == BOSS_KILLED){
-            tickBossKilled(mm);
+            tickBossKilled(mm);            
         } else if (stage == GAMEOVER) {
             if (stageStartTime+GAMEOVER_FADE_DURATION > mm)
             {
@@ -985,20 +1001,20 @@ bool inLava(int pos){
 
 void initLifeLEDs(){
 #ifdef USE_LIFELEDS  
-  // Life LEDs
-  for(int i = 0; i<LIFE_LEDS; i++){
-    pinMode(lifeLEDs[i], OUTPUT);
-    digitalWrite(lifeLEDs[i], HIGH);
-  }
+    // Life LEDs
+    for(int i = 0; i<LIFE_LEDS; i++){
+        pinMode(pgm_read_byte_near(lifeLEDs[i]), OUTPUT);
+        digitalWrite(pgm_read_byte_near(lifeLEDs[i]), HIGH);
+    }
 #endif
 }
 
 void updateLifeLEDs(){
 #ifdef USE_LIFELEDS
-  // Updates the life LEDs to show how many lives the player has left
-  for(int i = 0; i<LIFE_LEDS; i++){
-    digitalWrite(lifeLEDs[i], lives>i?HIGH:LOW);
-  }
+    // Updates the life LEDs to show how many lives the player has left
+    for(int i = 0; i<LIFE_LEDS; i++){
+      digitalWrite(pgm_read_byte_near(lifeLEDs[i]), lives>i?HIGH:LOW);
+    }
 #endif
 }
 
@@ -1006,7 +1022,7 @@ void updateLives(){
     #ifdef USE_LIFELEDS
         // Updates the life LEDs to show how many lives the player has left
         for(int i = 0; i<LIFE_LEDS; i++){
-           digitalWrite(lifeLEDs[i], lives>i?HIGH:LOW);
+           digitalWrite(pgm_read_byte_near(lifeLEDs[i]), lives>i?HIGH:LOW);
         }
     #endif
     
