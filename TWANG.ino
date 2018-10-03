@@ -529,8 +529,8 @@ void moveBoss(){
    
    ==============================================================================
 */
-void spawnEnemy(int pos, int dir, int speed, int wobble){
-    for(int e = 0; e<ENEMY_COUNT; e++){  // look for one that is not alive for a place to add one
+void spawnEnemy(int pos, bool dir, uint8_t speed, uint8_t wobble){
+    for(uint8_t e = 0; e<ENEMY_COUNT; e++){  // look for one that is not alive for a place to add one
         if(!enemyPool[e].Alive()){
             enemyPool[e].Spawn(pos, dir, speed, wobble);
             enemyPool[e].playerSide = pos > playerPosition?1:-1;
@@ -540,7 +540,7 @@ void spawnEnemy(int pos, int dir, int speed, int wobble){
 }
 
 void spawnLava(int left, int right, int ontime, int offtime, int offset, bool state){
-    for(int i = 0; i<LAVA_COUNT; i++){
+    for(uint8_t i = 0; i<LAVA_COUNT; i++){
         if(!lavaPool[i].Alive()){
             lavaPool[i].Spawn(left, right, ontime, offtime, offset, state);
             return;
@@ -548,10 +548,10 @@ void spawnLava(int left, int right, int ontime, int offtime, int offset, bool st
     }
 }
 
-void spawnConveyor(int startPoint, int endPoint, int dir){
-    for(int i = 0; i<CONVEYOR_COUNT; i++){
+void spawnConveyor(int startPoint, int endPoint, uint8_t speed){
+    for(uint8_t i = 0; i<CONVEYOR_COUNT; i++){
         if(!conveyorPool[i]._alive){
-            conveyorPool[i].Spawn(startPoint, endPoint, dir);
+            conveyorPool[i].Spawn(startPoint, endPoint, speed);
             return;
         }
     }
@@ -662,7 +662,7 @@ void tickStartup(long mm)
 }
 
 void tickEnemies(){
-    for(int i = 0; i<ENEMY_COUNT; i++){
+    for(uint8_t i = 0; i<ENEMY_COUNT; i++){
         if(enemyPool[i].Alive()){
             enemyPool[i].Tick();
             // Hit attack?
@@ -735,7 +735,7 @@ void drawExit(){
 
 void tickSpawners(){
     long mm = millis();
-    for(int s = 0; s<SPAWN_COUNT; s++){
+    for(uint8_t s = 0; s<SPAWN_COUNT; s++){
         if(spawnPool[s].Alive() && spawnPool[s]._activate < mm){
             if(spawnPool[s]._lastSpawned + spawnPool[s]._rate < mm || spawnPool[s]._lastSpawned == 0){
                 spawnEnemy(spawnPool[s]._pos, spawnPool[s]._dir, spawnPool[s]._speed, 0);
@@ -746,14 +746,11 @@ void tickSpawners(){
 }
 
 void tickLava(){
-    int A, B, p, i, brightness, flicker;
+    int A, B, p;
+    uint8_t i, brightness, flicker;
     long mm = millis();
-		uint8_t lava_off_brightness;
-		
-		lava_off_brightness = WS2812_LAVA_OFF_BRIGHTNESS;
-			
-		
-		
+		const uint8_t lava_off_brightness = WS2812_LAVA_OFF_BRIGHTNESS;
+
     Lava LP;
     for(i = 0; i<LAVA_COUNT; i++){        
         LP = lavaPool[i];
@@ -766,7 +763,7 @@ void tickLava(){
                     LP._lastOn = mm;
                 }
                 for(p = A; p<= B; p++){
-					flicker = random8(lava_off_brightness);
+                    flicker = random8(lava_off_brightness);
                     leds[p] = CRGB(lava_off_brightness+flicker, (lava_off_brightness+flicker)/1.5, 0);
                 }
             }else if(LP._state == Lava::ON){
@@ -775,11 +772,11 @@ void tickLava(){
                     LP._lastOn = mm;
                 }
                 for(p = A; p<= B; p++){
-					if(random8(30) < 29)
-						leds[p] = CRGB(150, 0, 0);
-					else
-						leds[p] = CRGB(180, 100, 0);
-                }				
+                    if(random8(30) < 29)
+                        leds[p] = CRGB(150, 0, 0);
+                    else
+                        leds[p] = CRGB(180, 100, 0);
+                }
             }
         }
         lavaPool[i] = LP;
@@ -789,18 +786,17 @@ void tickLava(){
 bool tickParticles(){
     bool stillActive = false;
     uint8_t brightness;
-    for(int p = 0; p < PARTICLE_COUNT; p++){
+    for(uint8_t p = 0; p < PARTICLE_COUNT; p++){
         if(particlePool[p].Alive()){
             particlePool[p].Tick(USE_GRAVITY);
 			
-			if (particlePool[p]._power < 5)
-			{
-				brightness = (5 - particlePool[p]._power) * 10;
-				leds[getLED(particlePool[p]._pos)] += CRGB(brightness, brightness/2, brightness/2);\
-			}
-			else			
-				leds[getLED(particlePool[p]._pos)] += CRGB(particlePool[p]._power, 0, 0);\
-		
+        if (particlePool[p]._power < 5)
+        {
+            brightness = (5 - particlePool[p]._power) * 10;
+            leds[getLED(particlePool[p]._pos)] += CRGB(brightness, brightness/2, brightness/2);\
+        }
+        else			
+            leds[getLED(particlePool[p]._pos)] += CRGB(particlePool[p]._power, 0, 0);\
             stillActive = true;
         }
     }
@@ -808,14 +804,13 @@ bool tickParticles(){
 }
 
 void tickConveyors(){
-    int b, speed, n, i, ss, ee, led;
+    int b, n, ss, ee, led;
+    uint8_t speed, i;
     long m = 10000+millis();
     playerPositionModifier = 0;
-		uint8_t conveyor_brightness;
-		
-		conveyor_brightness = WS2812_CONVEYOR_BRIGHTNES;
+		const uint8_t conveyor_brightness = WS2812_CONVEYOR_BRIGHTNES;
 	
-    int levels = 5; // brightness levels in conveyor 	
+    uint8_t levels = 5; // brightness levels in conveyor 	
 	
 
     for(i = 0; i<CONVEYOR_COUNT; i++){
@@ -847,7 +842,7 @@ void tickBossKilled(long mm) // boss funeral
 	
     FastLED.setBrightness(255); // super bright!
 	
-    int brightness = 0;
+    uint8_t brightness = 0;
     FastLED.clear();	
 	
     if(stageStartTime+6500 > mm){
@@ -892,7 +887,7 @@ void tickDie(long mm) { // a short bright explosion...particles persist after it
 }
 
 void tickGameover(long mm) {
-    int brightness = 0;
+    uint8_t brightness = 0;
     FastLED.clear();
     if(stageStartTime+GAMEOVER_SPREAD_DURATION > mm) // Spread red from player position to top and bottom
     {
@@ -950,9 +945,9 @@ void drawLives()
     FastLED.clear();
     
     int pos = 0;
-    for (int i = 0; i < lives; i++)
+    for (uint8_t i = 0; i < lives; i++)
     {
-            for (int j=0; j<4; j++)
+            for (uint8_t j=0; j<4; j++)
             {
                 leds[pos++] = CRGB(0, 255, 0);
                 FastLED.show();
@@ -1002,7 +997,7 @@ bool inLava(int pos){
 void initLifeLEDs(){
 #ifdef USE_LIFELEDS  
     // Life LEDs
-    for(int i = 0; i<LIFE_LEDS; i++){
+    for(uint8_t i = 0; i<LIFE_LEDS; i++){
         pinMode(pgm_read_byte_near(lifeLEDs[i]), OUTPUT);
         digitalWrite(pgm_read_byte_near(lifeLEDs[i]), HIGH);
     }
@@ -1012,7 +1007,7 @@ void initLifeLEDs(){
 void updateLifeLEDs(){
 #ifdef USE_LIFELEDS
     // Updates the life LEDs to show how many lives the player has left
-    for(int i = 0; i<LIFE_LEDS; i++){
+    for(uint8_t i = 0; i<LIFE_LEDS; i++){
       digitalWrite(pgm_read_byte_near(lifeLEDs[i]), lives>i?HIGH:LOW);
     }
 #endif
@@ -1021,7 +1016,7 @@ void updateLifeLEDs(){
 void updateLives(){
     #ifdef USE_LIFELEDS
         // Updates the life LEDs to show how many lives the player has left
-        for(int i = 0; i<LIFE_LEDS; i++){
+        for(uint8_t i = 0; i<LIFE_LEDS; i++){
            digitalWrite(pgm_read_byte_near(lifeLEDs[i]), lives>i?HIGH:LOW);
         }
     #endif
