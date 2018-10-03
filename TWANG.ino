@@ -322,7 +322,7 @@ void loop() {
             }
             else
             {
-                FastLED.clear();
+                FastLED.clear();	
                 levelNumber = 0;
                 lives = user_settings.lives_per_level;
                 loadLevel();
@@ -423,7 +423,6 @@ void loadLevel(){
             spawnLava(400, 490, 2000, 2000, 0, Lava::OFF);
             spawnEnemy(350, 0, 1, 0);
             spawnPool[0].Spawn(1000, 5500, 3, 0, 0);
-			
             break;
         case 4:
             // Sin enemy
@@ -434,13 +433,10 @@ void loadLevel(){
             // Sin enemy swarm
             spawnEnemy(700, 1, 7, 275);
             spawnEnemy(500, 1, 5, 250);
-
             spawnEnemy(600, 1, 7, 200);
             spawnEnemy(800, 1, 5, 350);
-
             spawnEnemy(400, 1, 7, 150);
             spawnEnemy(450, 1, 5, 400);
-			
             break;
         case 6:
             // Conveyor
@@ -448,6 +444,13 @@ void loadLevel(){
             spawnEnemy(800, 0, 0, 0);
             break;
         case 7:
+            // Drainage
+            spawnConveyor(100, 600, 1);
+            spawnConveyor(600, 1000, -1);
+            spawnEnemy(600, 0, 0, 0);
+            spawnPool[0].Spawn(1000, 5500, 3, 0, 0);
+            break;
+        case 8:
             // Conveyor of enemies
             spawnConveyor(50, 1000, 6);
             spawnEnemy(300, 0, 0, 0);
@@ -458,30 +461,30 @@ void loadLevel(){
             spawnEnemy(800, 0, 0, 0);
             spawnEnemy(900, 0, 0, 0);
             break;
-        case 8:   // spawn train;		
+        case 9:   // spawn train;		
             spawnPool[0].Spawn(900, 1300, 2, 0, 0);					
             break;
-        case 9:   // spawn train skinny attack width;
+        case 10:   // spawn train skinny attack width;
             attack_width = 32;
             spawnPool[0].Spawn(900, 1800, 2, 0, 0);
             break;
-        case 10:  // evil fast split spawner
+        case 11:  // evil fast split spawner
             spawnPool[0].Spawn(550, 1500, 2, 0, 0);
             spawnPool[1].Spawn(550, 1500, 2, 1, 0);
             break;
-        case 11: // split spawner with exit blocking lava
+        case 12: // split spawner with exit blocking lava
             spawnPool[0].Spawn(500, 1200, 2, 0, 0);
             spawnPool[1].Spawn(500, 1200, 2, 1, 0);		
             spawnLava(900, 950, 2200, 800, 2000, Lava::OFF);
 			      break;
-        case 12:
+        case 13:
             // Lava run
             spawnLava(195, 300, 2000, 2000, 0, Lava::OFF);
             spawnLava(400, 500, 2000, 2000, 0, Lava::OFF);
             spawnLava(600, 700, 2000, 2000, 0, Lava::OFF);
             spawnPool[0].Spawn(1000, 3800, 4, 0, 0);
             break;
-        case 13:
+        case 14:
             // Sin enemy #2 practice (slow conveyor)
             spawnEnemy(700, 1, 7, 275);
             spawnEnemy(500, 1, 5, 250);
@@ -489,7 +492,7 @@ void loadLevel(){
             spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
             spawnConveyor(100, 900, -4);
             break;
-        case 14:
+        case 15:
             // Sin enemy #2 (fast conveyor)
             spawnEnemy(800, 1, 7, 275);
             spawnEnemy(700, 1, 7, 275);
@@ -498,7 +501,27 @@ void loadLevel(){
             spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
             spawnConveyor(100, 900, -6);
             break;
-        case 15: // (don't edit last level)
+        case 16:
+            // less lava, more enemies
+            spawnLava(350, 455, 2000, 2000, 0, false);
+            spawnLava(660, 760, 2000, 2000, 0, false);
+            spawnPool[0].Spawn(1000, 3800, 4, 0, 270);
+            spawnEnemy(800, 0, 0, 0);
+            break;
+        case 17:
+            // pushed towards lava
+            spawnConveyor(100, 800, 1);
+            spawnLava(800, 850, 1000, 2000, 0, false);
+            spawnPool[0].Spawn(1000, 2000, 4, 0, 0);
+            break;
+        case 18:
+            // quick lava
+            spawnPool[0].Spawn(0, 2300, 6, 1, 7000);
+            spawnLava(200, 400, 1000, 2000, 0, false);
+            spawnLava(600, 800, 1000, 2000, 0, false);
+            spawnPool[1].Spawn(1000, 2500, 6, 0, 1000);
+            break;
+        case 19: // (don't edit last level)
             // Boss this should always be the last level			
             spawnBoss();
             break;
@@ -592,9 +615,8 @@ void levelComplete(){
 void nextLevel(){	
 	
     levelNumber ++;
-    //if(levelNumber > LEVEL_COUNT)
     if(lastLevel)		
-		levelNumber = 0;
+        levelNumber = 0;
     lives = user_settings.lives_per_level;
     loadLevel();
 }
