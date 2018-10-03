@@ -5,7 +5,7 @@ class iSin
   public:
       int convert(long x);
   private:
-      uint8_t isinTable8[91] = { 
+      const PROGMEM uint8_t isinTable8[91] = { 
           0, 4, 9, 13, 18, 22, 27, 31, 35, 40, 44, 
           49, 53, 57, 62, 66, 70, 75, 79, 83, 87, 
           91, 96, 100, 104, 108, 112, 116, 120, 124, 128, 
@@ -33,6 +33,7 @@ int iSin::convert(long x)
         pos = !pos;
     }
     if (x > 90) x = 180 - x;
-    if (pos) return isinTable8[x]/2 ;
+    if (pos) return pgm_read_byte_near(isinTable8[x])/2 ;
     return -isinTable8[x]/2 ;
 }
+
