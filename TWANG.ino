@@ -231,41 +231,40 @@ void loop() {
             screenSaverTick();
 		
         }else if(stage == STARTUP){
-			if (stageStartTime+STARTUP_FADE_DUR > mm)
-				tickStartup(mm);
-			else
-			{
-				SFXcomplete();
-				levelNumber = 0;
-				loadLevel();
-			}
-		}else if(stage == PLAY){
-            // PLAYING			
-			
+            if (stageStartTime+STARTUP_FADE_DUR > mm)
+				        tickStartup(mm);
+            else
+            {
+                SFXcomplete();
+                levelNumber = 0;
+                loadLevel();
+            }
+        }else if(stage == PLAY){
+            // PLAYING
             if(attacking && attackMillis+ATTACK_DURATION < mm) attacking = 0;		
-			
-			if (attacking)
-				SFXattacking();			
-
+    			
+            if (attacking)
+    				    SFXattacking();			
+    
             // If not attacking, check if they should be
             if(!attacking && joystickWobble > user_settings.attack_threshold){
                 attackMillis = mm;
                 attacking = 1;
             }
-
+    
             // If still not attacking, move!
             playerPosition += playerPositionModifier;
             if(!attacking){
-				SFXtilt(joystickTilt);
+                SFXtilt(joystickTilt);
                 int moveAmount = (joystickTilt/6.0);
                 if(DIRECTION) moveAmount = -moveAmount;
                 moveAmount = constrain(moveAmount, -MAX_PLAYER_SPEED, MAX_PLAYER_SPEED);
                 playerPosition -= moveAmount;
                 if(playerPosition < 0) playerPosition = 0;
-				// stop player from leaving if boss is alive
-				if (boss.Alive() && playerPosition >= VIRTUAL_LED_COUNT) // move player back
-					playerPosition = VIRTUAL_LED_COUNT - 1;
-					
+                // stop player from leaving if boss is alive
+                if (boss.Alive() && playerPosition >= VIRTUAL_LED_COUNT) // move player back
+                    playerPosition = VIRTUAL_LED_COUNT - 1;
+    
                 if(playerPosition >= VIRTUAL_LED_COUNT && !boss.Alive()) {
                     // Reached exit!
                     levelComplete();
@@ -276,7 +275,7 @@ void loop() {
             if(inLava(playerPosition)){
                 die();
             }
-
+    
             // Ticks and draw calls
             FastLED.clear();
             tickConveyors();
@@ -289,29 +288,30 @@ void loop() {
             drawExit();
         }else if(stage == DEAD){
             // DEAD			
-			SFXdead();			
+            SFXdead();
             FastLED.clear();
-			tickDie(mm);
+            tickDie(mm);
             if(!tickParticles()){
                 loadLevel();
             }
-        }else if(stage == WIN){// LEVEL COMPLETE   
+        }else if(stage == WIN){
+            // LEVEL COMPLETE
             tickWin(mm);
         }else if(stage == BOSS_KILLED){
-			tickBossKilled(mm);            
-         } else if (stage == GAMEOVER) {
-			if (stageStartTime+GAMEOVER_FADE_DURATION > mm)
-			{
-				tickGameover(mm);
-			}
-			else
-			{
-				FastLED.clear();	
+            tickBossKilled(mm);
+        } else if (stage == GAMEOVER) {
+            if (stageStartTime+GAMEOVER_FADE_DURATION > mm)
+            {
+                tickGameover(mm);
+            }
+            else
+            {
+                FastLED.clear();
                 levelNumber = 0;
-				lives = user_settings.lives_per_level;              
+                lives = user_settings.lives_per_level;
                 loadLevel();
-			}          
-         }
+            }
+        }
 
         FastLED.show();
     }
@@ -405,7 +405,7 @@ void loadLevel(){
         case 3:
             // Lava intro
             spawnLava(400, 490, 2000, 2000, 0, Lava::OFF);
-			spawnEnemy(350, 0, 1, 0);
+            spawnEnemy(350, 0, 1, 0);
             spawnPool[0].Spawn(1000, 5500, 3, 0, 0);
 			
             break;
@@ -414,15 +414,15 @@ void loadLevel(){
             spawnEnemy(700, 1, 7, 275);
             spawnEnemy(500, 1, 5, 250);
             break;
-		case 5:
-			// Sin enemy swarm
+        case 5:
+            // Sin enemy swarm
             spawnEnemy(700, 1, 7, 275);
             spawnEnemy(500, 1, 5, 250);
-			
-			spawnEnemy(600, 1, 7, 200);
+
+            spawnEnemy(600, 1, 7, 200);
             spawnEnemy(800, 1, 5, 350);
-			
-			spawnEnemy(400, 1, 7, 150);
+
+            spawnEnemy(400, 1, 7, 150);
             spawnEnemy(450, 1, 5, 400);
 			
             break;
