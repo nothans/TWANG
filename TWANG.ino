@@ -1,20 +1,16 @@
 /* 
   TWANG 
 
-  Code at ..
-
-  https://github.com/bdring/TWANG
-
-  Based on original code by Critters/TWANG	
+  Based on original code by Critters/TWANG
 
   https://github.com/Critters/TWANG
 
-	
+  Additional contributions from:
+  - bdring (serial menu, more levels)
+  - dskw (more levels)
 
-  Changes on this revision
-  - At startup, if any EEPROM value is out of range, reset them all 
-  - LED Strip type can now be set by serial port
-  - LED Count can now be set by serial port
+
+  Ported to the Arduino Nano by nuess0r
 
   CONNECTION for Arduino Nano:
     Pins D2         LED data pin
@@ -52,16 +48,18 @@
 // Arduino Mega 2560
 #define DATA_PIN             3
 #define CLOCK_PIN            4   // ignored for Neopixel
+
+#define VIRTUAL_LED_COUNT 1000
 #elif defined(ARDUINO_AVR_NANO)
 // Arduino Mega 328
 #define DATA_PIN             2
 #define CLOCK_PIN            3   // ignored for Neopixel
+
+#define VIRTUAL_LED_COUNT 180
 #else
 #error "Please define DATA_PIN and CLOCK_PIN for your board."
 #endif
 
-
-#define VIRTUAL_LED_COUNT 180
 
 #define USE_LIFELEDS  // uncomment this to make Life LEDs avilable (not used in the B. Dring enclosure)
 
@@ -155,13 +153,26 @@ Enemy enemyPool[ENEMY_COUNT] = {
     Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy()
 };
 
-
-#define PARTICLE_COUNT 20
-//#define PARTICLE_COUNT 40
+#if defined(ARDUINO_AVR_MEGA2560)
+// Arduino Mega 2560
+#define PARTICLE_COUNT 40
 Particle particlePool[PARTICLE_COUNT] = {
-    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle() 
-    //Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle()
+    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(),
+    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(),
+    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(),
+    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle()
 };
+#elif defined(ARDUINO_AVR_NANO)
+#define PARTICLE_COUNT 24
+Particle particlePool[PARTICLE_COUNT] = {
+    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(),
+    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(),
+    Particle(), Particle(), Particle(), Particle()
+};
+#else
+#error "Please define size of particle pool for your board."
+#endif
+
 
 #define SPAWN_COUNT 2
 Spawner spawnPool[SPAWN_COUNT] = {

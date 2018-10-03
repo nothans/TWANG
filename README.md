@@ -1,12 +1,8 @@
 # TWANG (FORK)
 An Arduino-based, 1D, LED loving, dungeon crawler. inspired by Line Wobbler by Robin B
 
-This fork was done to incorporate feedback after several field tests. Details on the fork can be found at the [Buildlog.net Blog](http://www.buildlog.net/blog?s=twang)
-
-Click image for video....(ESP32 Version)
-
-[![TWANG32 Play Video](https://img.youtube.com/vi/RXpfa-ZvUMA/0.jpg)](https://www.youtube.com/watch?v=RXpfa-ZvUMA)
-
+This fork is focused on the porting to the smaller ATmega328p, means this version is
+running on a Arduino NANO!
 
 ## Required libraries:
 * [FastLED](http://fastled.io/)
@@ -16,9 +12,9 @@ Click image for video....(ESP32 Version)
 * [RunningMedian](http://playground.arduino.cc/Main/RunningMedian)
 
 ## Hardware used:
-* Arduino MEGA
+* Arduino NANO or MEGA
 * 3 LEDs for life indicator (optional) This fork displays the remaining lives on the LED strip.
-* LED light strip. (60 to 1000 LEDs) Tested with..... 
+* LED light strip. NANO is limited to max. 180 LEDs, MEGA up to 1000 
   * 1 meter 60 LEDs (good)
   * 1 meter 144 LEDs. (awesome. Great for running on table)
   * 2 meter 288 LEDs. (awesome. The increased resolution makes the game a little easier to win)
@@ -28,8 +24,6 @@ Click image for video....(ESP32 Version)
 * Spring doorstop, I used [these](http://smile.amazon.com/gp/product/B00J4Y5BU2)
 
 See [Buildlog.net Blog](http://www.buildlog.net/blog?s=twang) for more details.
-
-Super **easy to use kits** and **ready to play units** are available on [Tindie](https://www.tindie.com/products/33366583/twang-shield-kit/)
 
 ![](http://www.buildlog.net/blog/wp-content/uploads/2018/04/20180416_103412.jpg)
 
@@ -56,7 +50,9 @@ The game also has 3 regular LEDs for life indicators (the player gets 3 lives wh
 **USE_GRAVITY** 0/1 to set if particles created by the player getting killed should fall towards the start point, the BEND_POINT variable can be set to mark the point at which the strip of LEDs goes from been horizontal to vertical. The game is 1000 units wide (regardless of number of LED's) so 500 would be the mid point. If this is confusing just set USE_GRAVITY to 0
 
 ##  Serial Port Options Menu (New!) ##
-All of the basic setup options can now be set over the serial port. An easy to use serial terminal is the Serial Console of the Arduino IDE. Open the Com Port that appears when you plug in the TWANG USB. 
+All of the basic setup options can now be set over the serial port. An easy to use serial terminal is
+the Serial Console of the Arduino IDE. Open the Com Port that appears when you plug in the TWANG USB. 
+
 Set it up for 115200 baud and have it add a carriage return when sending. You should see this menu.
 
 ![](http://www.buildlog.net/blog/wp-content/uploads/2018/04/twang_console.png)
