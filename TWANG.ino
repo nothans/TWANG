@@ -98,7 +98,7 @@ uint8_t levelNumber = 0;
 iSin isin = iSin();
 
 
-uint8_t joystickTilt = 0;              // Stores the angle of the joystick
+int8_t joystickTilt = 0;              // Stores the angle of the joystick
 int joystickWobble = 0;            // Stores the max amount of wobble
 
 // WOBBLE ATTACK
@@ -283,7 +283,7 @@ void loop() {
             playerPosition += playerPositionModifier;
             if(!attacking){
                 SFXtilt(joystickTilt);
-                int moveAmount = (joystickTilt/6.0);
+                int8_t moveAmount = (joystickTilt/6.0);
                 if(DIRECTION) moveAmount = -moveAmount;
                 moveAmount = constrain(moveAmount, -MAX_PLAYER_SPEED, MAX_PLAYER_SPEED);
                 playerPosition -= moveAmount;
@@ -592,19 +592,19 @@ void spawnConveyor(int startPoint, int endPoint, uint8_t speed){
 }
 
 void cleanupLevel(){
-    for(int i = 0; i<ENEMY_COUNT; i++){
+    for(uint8_t i = 0; i<ENEMY_COUNT; i++){
         enemyPool[i].Kill();
     }
-    for(int i = 0; i<PARTICLE_COUNT; i++){
+    for(uint8_t i = 0; i<PARTICLE_COUNT; i++){
         particlePool[i].Kill();
     }
-    for(int i = 0; i<SPAWN_COUNT; i++){
+    for(uint8_t i = 0; i<SPAWN_COUNT; i++){
         spawnPool[i].Kill();
     }
-    for(int i = 0; i<LAVA_COUNT; i++){
+    for(uint8_t i = 0; i<LAVA_COUNT; i++){
         lavaPool[i].Kill();
     }
-    for(int i = 0; i<CONVEYOR_COUNT; i++){
+    for(uint8_t i = 0; i<CONVEYOR_COUNT; i++){
         conveyorPool[i].Kill();
     }
     boss.Kill();
@@ -649,7 +649,7 @@ void die(){
     }
     else
     {
-      for(int p = 0; p < PARTICLE_COUNT; p++){
+      for(uint8_t p = 0; p < PARTICLE_COUNT; p++){
           particlePool[p].Spawn(playerPosition);
       }
       stageStartTime = millis();
@@ -903,7 +903,7 @@ void tickDie(long mm) { // a short bright explosion...particles persist after it
 
     if(stageStartTime+duration > mm) {// Spread red from player position up and down the width
 
-        int brightness = map((mm-stageStartTime), 0, duration, 255, 50); // this allows a fade from white to red
+        uint8_t brightness = map((mm-stageStartTime), 0, duration, 255, 50); // this allows a fade from white to red
 		
         // fill up
         int n = max(map(((mm-stageStartTime)), 0, duration, getLED(playerPosition), getLED(playerPosition)+width), 0);
@@ -1033,15 +1033,6 @@ void initLifeLEDs(){
     for(uint8_t i = 0; i<LIFE_LEDS; i++){
         pinMode(pgm_read_byte_near(lifeLEDs[i]), OUTPUT);
         digitalWrite(pgm_read_byte_near(lifeLEDs[i]), HIGH);
-    }
-#endif
-}
-
-void updateLifeLEDs(){
-#ifdef USE_LIFELEDS
-    // Updates the life LEDs to show how many lives the player has left
-    for(uint8_t i = 0; i<LIFE_LEDS; i++){
-      digitalWrite(pgm_read_byte_near(lifeLEDs[i]), lives>i?HIGH:LOW);
     }
 #endif
 }
