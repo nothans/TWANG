@@ -8,7 +8,7 @@ class Particle
 {
   public:
     void Spawn(int pos);
-    void Tick(int USE_GRAVITY);
+    void Tick(bool USE_GRAVITY, int BEND_POINT);
     void Kill();
     bool Alive();
     int _pos;
@@ -27,7 +27,7 @@ void Particle::Spawn(int pos){
     _life = 220 - abs(_sp);
 }
 
-void Particle::Tick(int USE_GRAVITY){
+void Particle::Tick(bool USE_GRAVITY, int BEND_POINT){
     if(_alive){
         _life ++;
         if(_sp > 0){
@@ -35,7 +35,7 @@ void Particle::Tick(int USE_GRAVITY){
         }else{
             _sp += _life/10;
         }
-        if(USE_GRAVITY && _pos > 500) _sp -= 10;
+        if(USE_GRAVITY && _pos > BEND_POINT) _sp -= 10;
         _power = 100 - _life;
         if(_power <= 0){
             Kill(); 

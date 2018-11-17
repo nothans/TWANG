@@ -823,7 +823,7 @@ bool tickParticles(){
     uint8_t brightness;
     for(uint8_t p = 0; p < PARTICLE_COUNT; p++){
         if(particlePool[p].Alive()){
-            particlePool[p].Tick(USE_GRAVITY);
+            particlePool[p].Tick(USE_GRAVITY, BEND_POINT);
 			
         if (particlePool[p]._power < 5)
         {
