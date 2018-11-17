@@ -196,8 +196,8 @@ Boss boss = Boss();
 // MPU
 MPU6050 accelgyro;
 CRGB leds[MAX_LED_COUNT]; // this is set to the max, but the actual number used is set in FastLED.addLeds below
-RunningMedian MPUAngleSamples = RunningMedian(5);
-RunningMedian MPUWobbleSamples = RunningMedian(5);
+RunningMedian<int,5> MPUAngleSamples;
+RunningMedian<int,5> MPUWobbleSamples;
 
 void setup() {    
 	
@@ -1108,11 +1108,13 @@ void getInput(){
     MPUAngleSamples.add(a);
     MPUWobbleSamples.add(g);
 
-    joystickTilt = MPUAngleSamples.getMedian();
+    MPUAngleSamples.getMedian(a);
+    joystickTilt = (int8_t)a;
     if(JOYSTICK_DIRECTION == 1) {
         joystickTilt = 0-joystickTilt;
     }
-    joystickWobble = abs(MPUWobbleSamples.getHighest());
+    MPUWobbleSamples.getHighest(a);
+    joystickWobble = abs(a);
 }
 
 // ---------------------------------
