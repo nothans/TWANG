@@ -6,7 +6,7 @@
 
 // change this whenever the saved settings are not compatible with a change
 // it force a load from defaults.
-#define SETTINGS_VERSION 4
+#define SETTINGS_VERSION 5
 
 // LED Strip Setup
 #if defined(ARDUINO_AVR_MEGA2560)
@@ -37,11 +37,6 @@
 #define WS2812_LAVA_OFF_BRIGHTNESS 15
 
 #define USE_LIFELEDS  // uncomment this to make Life LEDs available (not used in the B. Dring enclosure)
-
-#define DIRECTION            1     // 0 = right to left, 1 = left to right
-#define USE_GRAVITY          1     // 0/1 use gravity (LED strip going up wall)
-#define BEND_POINT           750   // 0/1000 point at which the LED strip goes up the wall
-
 
 // JOYSTICK
 #define JOYSTICK_ORIENTATION 1     // 0, 1 or 2 to set the angle of the joystick
@@ -114,6 +109,11 @@ typedef struct {
 	uint8_t audio_volume;
 	
 	uint8_t lives_per_level;
+
+  uint8_t player_direction;
+  
+  uint8_t gravity;
+  uint16_t bend_point;
 	
 }settings_t;
 
@@ -200,19 +200,31 @@ void show_settings_menu() {
 	
 	Serial.print(F("\r\nC="));
 	Serial.print(user_settings.led_count);
-	Serial.println(F(" (LED Count 100-180.. forces restart if increased above initial val.)"));
+	Serial.println(F(" (LED Count 60-1000 forces restart if increased above initial val.)"));
 	
 	Serial.print(F("B="));	
 	Serial.print(user_settings.led_brightness);
 	Serial.println(F(" (LED Brightness 10-255)"));
-	
+
+  Serial.print(F("G="));
+  Serial.print(user_settings.gravity);
+  Serial.println(F(" (Use gravity (LED strip going up wall) 0 = off, 1 = on)"));
+
+  Serial.print(F("P="));
+  Serial.print(user_settings.bend_point);
+  Serial.println(F(" (Point at which the LED strip goes up the wall 0-1000)"));
+
 	Serial.print(F("S="));
 	Serial.print(user_settings.audio_volume);
 	Serial.println(F(" (Sound Volume 0-10)"));
 	
-	Serial.print(F("D="));
+	Serial.print(F("J="));
 	Serial.print(user_settings.joystick_deadzone);
 	Serial.println(F(" (Joystick Deadzone 3-12)"));
+
+  Serial.print(F("D="));
+  Serial.print(user_settings.player_direction);
+  Serial.println(F(" (Player movment direction 0 = right to left, 1 = left to right)"));
 	
 	Serial.print(F("A="));
 	Serial.print(user_settings.attack_threshold);
@@ -225,6 +237,7 @@ void show_settings_menu() {
 	Serial.println(F("\r\n(Send...)"));
 	Serial.println(F("  ? to show current settings"));
 	Serial.println(F("  R to reset everything to defaults"));
+  Serial.println(F("  ! to reboot\r\n"));
 	
 }
 
@@ -240,6 +253,11 @@ void reset_settings() {
 	user_settings.audio_volume = MAX_VOLUME;
 	
 	user_settings.lives_per_level = LIVES_PER_LEVEL;
+
+  user_settings.player_direction = 1;
+  
+  user_settings.gravity = 0;
+  user_settings.bend_point = VIRTUAL_WORLD_COUNT/2;
 	
 	settings_eeprom_write();
 	
@@ -298,7 +316,7 @@ void change_setting(char *line) {
 			settings_eeprom_write();
 		break;
 		
-		case 'D': // deadzone, joystick
+		case 'J': // deadzone, joystick
 			user_settings.joystick_deadzone = constrain(newValue, MIN_JOYSTICK_DEADZONE, MAX_JOYSTICK_DEADZONE);
 			settings_eeprom_write();		
 		break;
@@ -311,7 +329,22 @@ void change_setting(char *line) {
 		case 'L': // lives per level
 			user_settings.lives_per_level = constrain(newValue, MIN_LIVES_PER_LEVEL, MAX_LIVES_PER_LEVEL);
 			settings_eeprom_write();
-		break;	
+		break;
+
+    case 'D': // player direction
+      user_settings.player_direction = constrain(newValue, 0, 1);
+      settings_eeprom_write();
+    break;
+
+    case 'G': // gravity
+      user_settings.gravity = constrain(newValue, 0, 1);
+      settings_eeprom_write();
+    break;
+
+    case 'P': // bend point
+      user_settings.bend_point = constrain(newValue, 0, VIRTUAL_WORLD_COUNT);
+      settings_eeprom_write();
+    break;
 		
 		default:
 			Serial.print(F("Command Error: "));
@@ -363,7 +396,15 @@ void settings_eeprom_read()
 	
 	if (user_settings.lives_per_level < MIN_LIVES_PER_LEVEL || user_settings.lives_per_level > MAX_LIVES_PER_LEVEL)
 		read_fail = true;
-	
+
+  if (user_settings.player_direction > 1)
+    read_fail = true; 
+
+  if (user_settings.gravity > 1)
+    read_fail = true;
+
+  if (user_settings.bend_point > VIRTUAL_WORLD_COUNT)
+    read_fail = true;
 	
 	if (read_fail) {
 		reset_settings();

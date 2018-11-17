@@ -237,7 +237,7 @@ void loop() {
             if(!attacking){
                 SFXtilt(joystickTilt);
                 int8_t moveAmount = (joystickTilt/6.0);
-                if(DIRECTION) moveAmount = -moveAmount;
+                if(user_settings.player_direction) moveAmount = -moveAmount;
                 moveAmount = constrain(moveAmount, -MAX_PLAYER_SPEED, MAX_PLAYER_SPEED);
                 playerPosition -= moveAmount;
                 if(playerPosition < 0) playerPosition = 0;
@@ -774,7 +774,7 @@ bool tickParticles(){
     uint8_t brightness;
     for(uint8_t p = 0; p < PARTICLE_COUNT; p++){
         if(particlePool[p].Alive()){
-            particlePool[p].Tick(USE_GRAVITY, BEND_POINT);
+            particlePool[p].Tick(user_settings.gravity, user_settings.bend_point);
 			
         if (particlePool[p]._power < 5)
         {
