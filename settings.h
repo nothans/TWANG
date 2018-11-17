@@ -8,14 +8,40 @@
 // it force a load from defaults.
 #define SETTINGS_VERSION 4
 
-// LED
-#define NUM_LEDS             120
-#define MIN_LEDS				60
-#define MAX_LEDS				180
+// LED Strip Setup
+#if defined(ARDUINO_AVR_MEGA2560)
+// Arduino Mega 2560
+#define DATA_PIN             3
+#define CLOCK_PIN            4   // ignored for Neopixel
 
-#define BRIGHTNESS           150
+#define MAX_LEDS 1000
+#elif defined(ARDUINO_AVR_NANO)
+// Arduino Mega 328
+#define DATA_PIN             2
+#define CLOCK_PIN            3   // ignored for Neopixel
+
+#define MAX_LEDS 180
+#else
+#error "Please define DATA_PIN and CLOCK_PIN for your board."
+#endif
+
+#define NUM_LEDS        120
+#define MIN_LEDS				60
+
+#define BRIGHTNESS          150
 #define MIN_BRIGHTNESS			10
 #define MAX_BRIGHTNESS 			255
+
+// the strips have different low level brightness.  WS2812 tends to fade out faster at the low end
+#define WS2812_CONVEYOR_BRIGHTNES  40
+#define WS2812_LAVA_OFF_BRIGHTNESS 15
+
+#define USE_LIFELEDS  // uncomment this to make Life LEDs available (not used in the B. Dring enclosure)
+
+#define DIRECTION            1     // 0 = right to left, 1 = left to right
+#define USE_GRAVITY          1     // 0/1 use gravity (LED strip going up wall)
+#define BEND_POINT           750   // 0/1000 point at which the LED strip goes up the wall
+
 
 // JOYSTICK
 #define JOYSTICK_ORIENTATION 1     // 0, 1 or 2 to set the angle of the joystick
@@ -29,17 +55,42 @@
 #define MIN_JOYSTICK_DEADZONE 3
 #define MAX_JOYSTICK_DEADZONE 12
 
-// PLAYER
+
+// AUDIO
+#define MAX_VOLUME           10
+#define MIN_VOLUME              0
+#define MAX_VOLUME              10
+
+
+// LEVELS
+#define VIRTUAL_WORLD_COUNT 1000
+
 #define MAX_PLAYER_SPEED    10     // Max move speed of the player
 
-#define LIVES_PER_LEVEL		3
+#define LIVES_PER_LEVEL    3
 #define MIN_LIVES_PER_LEVEL 3
 #define MAX_LIVES_PER_LEVEL 9
 
-//AUDIO
-#define MAX_VOLUME           10
-#define MIN_VOLUME							0
-#define MAX_VOLUME							10
+#define DEFAULT_ATTACK_WIDTH 70  // Width of the wobble attack, world is 1000 wide
+#define ATTACK_DURATION     500    // Duration of a wobble attack (ms)
+
+#define BOSS_WIDTH          40
+
+// Animation durations used in main loop and some sounds too.
+#define MIN_REDRAW_INTERVAL  16    // Min redraw interval (ms) 33 = 30fps / 16 = 63fps
+#define STARTUP_WIPEUP_DUR 200
+#define STARTUP_SPARKLE_DUR 1300
+#define STARTUP_FADE_DUR 1500
+
+#define GAMEOVER_SPREAD_DURATION 1000
+#define GAMEOVER_FADE_DURATION 1500
+
+#define WIN_FILL_DURATION 500     // sound has a freq effect that might need to be adjusted
+#define WIN_CLEAR_DURATION 1000
+#define WIN_OFF_DURATION 1200
+
+// SCREEN SAVER
+#define TIMEOUT              30000  // time until screen saver
 
 enum stripTypes{
 	strip_APA102 = 0,
