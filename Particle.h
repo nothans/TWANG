@@ -16,12 +16,12 @@ class Particle
   private:
     uint8_t _life;
     bool _alive;
-    uint8_t _sp;
+    int8_t _sp;
 };
 
 void Particle::Spawn(int pos){
     _pos = pos;
-    _sp = random(-200, 200);
+    _sp = random(-128, 127);
     _power = 255;
     _alive = 1;
     _life = 220 - abs(_sp);

@@ -148,8 +148,6 @@ void show_settings_menu() {
 	Serial.println(F("==================================="));
 	
 	Serial.print(F("\r\nC="));
-	
-	Serial.print(F("C="));	
 	Serial.print(user_settings.led_count);
 	Serial.println(F(" (LED Count 100-180.. forces restart if increased above initial val.)"));
 	

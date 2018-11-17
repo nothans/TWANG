@@ -49,13 +49,13 @@
 #define DATA_PIN             3
 #define CLOCK_PIN            4   // ignored for Neopixel
 
-#define VIRTUAL_LED_COUNT 1000
+#define MAX_LED_COUNT 1000
 #elif defined(ARDUINO_AVR_NANO)
 // Arduino Mega 328
 #define DATA_PIN             2
 #define CLOCK_PIN            3   // ignored for Neopixel
 
-#define VIRTUAL_LED_COUNT 180
+#define MAX_LED_COUNT 180
 #else
 #error "Please define DATA_PIN and CLOCK_PIN for your board."
 #endif
@@ -128,6 +128,8 @@ long killTime;
 uint8_t lives;
 bool lastLevel = false;
 
+#define VIRTUAL_WORLD_COUNT 1000
+
 // TODO all animation durations should be defined rather than literals 
 // because they are used in main loop and some sounds too.
 #define STARTUP_WIPEUP_DUR 200
@@ -193,7 +195,7 @@ Boss boss = Boss();
 
 // MPU
 MPU6050 accelgyro;
-CRGB leds[VIRTUAL_LED_COUNT]; // this is set to the max, but the actual number used is set in FastLED.addLeds below
+CRGB leds[MAX_LED_COUNT]; // this is set to the max, but the actual number used is set in FastLED.addLeds below
 RunningMedian MPUAngleSamples = RunningMedian(5);
 RunningMedian MPUWobbleSamples = RunningMedian(5);
 
@@ -289,10 +291,10 @@ void loop() {
                 playerPosition -= moveAmount;
                 if(playerPosition < 0) playerPosition = 0;
                 // stop player from leaving if boss is alive
-                if (boss.Alive() && playerPosition >= VIRTUAL_LED_COUNT) // move player back
-                    playerPosition = VIRTUAL_LED_COUNT - 1;
+                if (boss.Alive() && playerPosition >= VIRTUAL_WORLD_COUNT) // move player back
+                    playerPosition = VIRTUAL_WORLD_COUNT - 1;
     
-                if(playerPosition >= VIRTUAL_LED_COUNT && !boss.Alive()) {
+                if(playerPosition >= VIRTUAL_WORLD_COUNT && !boss.Alive()) {
                     // Reached exit!
                     levelComplete();
                     return;
@@ -368,7 +370,7 @@ void loadLevel(){
 	Don't edit case 0 or the last (boss) level. They are special cases and editing them could
 	break the code.
 	
-	TWANG uses a virtual 1000 LED grid. It will then scale that number to your strip, so if you
+	TWANG uses a virtual 1000 LED grid (World). It will then scale that number to your strip, so if you
 	want something in the middle of your strip use the number 500. Consider the size of your strip
 	when adding features. All time values are specified in milliseconds (1/1000 of a second)
 	
@@ -1011,7 +1013,7 @@ void drawAttack(){
 
 int getLED(int pos){
     // The world is 1000 pixels wide, this converts world units into an LED number
-    return constrain((int)map(pos, 0, VIRTUAL_LED_COUNT, 0, user_settings.led_count-1), 0, user_settings.led_count-1);
+    return constrain((int)map(pos, 0, VIRTUAL_WORLD_COUNT, 0, user_settings.led_count-1), 0, user_settings.led_count-1);
 }
 
 bool inLava(int pos){
