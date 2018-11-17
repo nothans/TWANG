@@ -2,7 +2,7 @@
 An Arduino-based, 1D, LED loving, dungeon crawler. inspired by Line Wobbler by Robin B
 
 This fork is focused on the porting to the smaller ATmega328p, means this version is
-running on a Arduino NANO!
+running on a Arduino NANO with up to 288 LEDs!
 
 ## Required libraries:
 * [FastLED](http://fastled.io/)
@@ -13,11 +13,11 @@ running on a Arduino NANO!
 ## Hardware used:
 * Arduino NANO or MEGA
 * 3 LEDs for life indicator (optional) This fork displays the remaining lives on the LED strip.
-* LED light strip. NANO is limited to max. 180 LEDs, MEGA up to 1000 
+* LED light strip. NANO is limited to max. 288 LEDs, MEGA up to 1000 
   * 1 meter 60 LEDs (good)
   * 1 meter 144 LEDs. (awesome. Great for running on table)
   * 2 meter 288 LEDs. (awesome. The increased resolution makes the game a little easier to win)
-  * 5 meter 450 LEDs. (awesome, but too long for most locations)
+  * 5 meter 450 LEDs. (awesome, but too long for most locations, only with MEGA)
   * Virtually tested 1000. The game slows down at this count on Arduino (great on ESP32)
 * MPU6050 accelerometer
 * Spring doorstop, I used [these](http://smile.amazon.com/gp/product/B00J4Y5BU2)

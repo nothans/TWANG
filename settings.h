@@ -20,7 +20,7 @@
 #define DATA_PIN             2
 #define CLOCK_PIN            3   // ignored for Neopixel
 
-#define MAX_LEDS 180
+#define MAX_LEDS 288
 #else
 #error "Please define DATA_PIN and CLOCK_PIN for your board."
 #endif
