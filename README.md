@@ -4,6 +4,14 @@ An Arduino-based, 1D, LED loving, dungeon crawler. inspired by Line Wobbler by R
 This fork is focused on the porting to the smaller ATmega328p, means this version is
 running on a Arduino NANO with up to 288 LEDs!
 
+Features:
+* More levels. Merged levels from other forks, now you have 20 levels to beat!
+* More screensavers. Also merged from other forks, 5 different patterns total
+* More settings to configure in the serial menu to adopt it to a new location
+* Works on extremely cheap Arduino NANO clones with all features
+* Only 75% of flash is used on the NANO so there is lots of room for more levels and screensavers (please share them via pull requests)
+
+
 ## Required libraries:
 * [FastLED](http://fastled.io/)
 * I2Cdev
@@ -13,12 +21,13 @@ running on a Arduino NANO with up to 288 LEDs!
 ## Hardware used:
 * Arduino NANO or MEGA
 * 3 LEDs for life indicator (optional) This fork displays the remaining lives on the LED strip.
-* LED light strip. NANO is limited to max. 288 LEDs, MEGA up to 1000 
+* LED light strip. NANO is limited to max. 288 LEDs, MEGA up to 1000
   * 1 meter 60 LEDs (good)
-  * 1 meter 144 LEDs. (awesome. Great for running on table)
+  * 1 meter 144 LEDs. (awesome. Great for running on table, very portable)
   * 2 meter 288 LEDs. (awesome. The increased resolution makes the game a little easier to win)
+  * 3 meter 180 LEDs. (fun. Great for balcony or running from a table up to the wall)
   * 5 meter 450 LEDs. (awesome, but too long for most locations, only with MEGA)
-  * Virtually tested 1000. The game slows down at this count on Arduino (great on ESP32)
+  * Virtually tested 1000. The game slows down at this count on Arduino (great on ESP32 see other forks)
 * MPU6050 accelerometer
 * Spring doorstop, I used [these](http://smile.amazon.com/gp/product/B00J4Y5BU2)
 
@@ -27,7 +36,7 @@ See [Buildlog.net Blog](http://www.buildlog.net/blog?s=twang) for more details.
 ![](http://www.buildlog.net/blog/wp-content/uploads/2018/04/20180416_103412.jpg)
 
 ## Enclosure
-Files to print the original enclosure can be found [here](http://www.thingiverse.com/thing:1116899)
+Files to print the original enclosure and controller knob can be found [here](http://www.thingiverse.com/thing:1116899)
 The Tindie kit version version of the enclosure can be found [here](https://www.thingiverse.com/thing:2770292)
 
 
@@ -54,7 +63,7 @@ the Serial Console of the Arduino IDE. Open the Com Port that appears when you p
 
 Set it up for 115200 baud and have it add a carriage return when sending. You should see this menu.
 
-![](http://www.buildlog.net/blog/wp-content/uploads/2018/04/twang_console.png)
+![](http://brain4free.org/wiki/lib/exe/fetch.php/elektronik:twang_settings_20181118.png)
 
 
 You can change any of these settings. Send B=225 to change the LED brightness to 225 (on a 5-255 scale). These settings will be saved in the EEPROM memory of the TWANG and not be lost when you power down the TWANG.
@@ -62,7 +71,7 @@ You can change any of these settings. Send B=225 to change the LED brightness to
 There are also 3 single character commands (?, R, P)
 
 ## Modifying / Creating levels
-Find the loadLevel() function, in there you can see a switch statment with the 10 levels I created. 
+Find the loadLevel() function, in there you can see a switch statment with the 20 levels currently implemented.
 They all call different functions and variables to setup the level. Each one is described below:
 
 **playerPosition;** Where the player starts on the 0 to 1000 line. If not set it defaults to 0. I set it to 200 in the first level so the player can see movement even if the first action they take is to push the joystick left
