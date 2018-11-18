@@ -68,7 +68,7 @@ Set it up for 115200 baud and have it add a carriage return when sending. You sh
 
 You can change any of these settings. Send B=225 to change the LED brightness to 225 (on a 5-255 scale). These settings will be saved in the EEPROM memory of the TWANG and not be lost when you power down the TWANG.
 
-There are also 3 single character commands (?, R, P)
+There are also 3 single character commands (?, R, !)
 
 ## Modifying / Creating levels
 Find the loadLevel() function, in there you can see a switch statment with the 20 levels currently implemented.
