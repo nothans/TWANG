@@ -29,7 +29,6 @@
 #include "MPU6050.h"
 #include "Wire.h"
 #include "iSin.h"
-#include "RunningMedian.h"
 
 #include <stdint.h> // uint8_t type variables
 
@@ -40,6 +39,7 @@
 #include "Lava.h"
 #include "Boss.h"
 #include "Conveyor.h"
+#include "ScreenSaverMgr.h"
 #include "settings.h"
 
 
@@ -58,7 +58,6 @@
 #define twangPlayToneLen(freq, vol, len)  do {} while(0)
 #define twangStopTone()                   do {} while(0)
 #endif
-
 
 // GAME
 long previousMillis = 0;           // Time of the last redraw
@@ -89,6 +88,7 @@ int score;
 long stageStartTime;               // Stores the time the stage changed for stages that are time based
 int playerPosition;                // Stores the player position
 int playerPositionModifier;        // +/- adjustment to player position
+
 bool playerAlive;
 long killTime;
 uint8_t lives;
@@ -150,8 +150,8 @@ CRGB leds[MAX_LEDS]; // this is set to the max, but the actual number used is se
 RunningMedian<int,5> MPUAngleSamples;
 RunningMedian<int,5> MPUWobbleSamples;
 
-void setup() {    
-	
+void setup() {
+
     Serial.begin(115200);
     settings_eeprom_read();
     showSetupInfo();
@@ -163,31 +163,24 @@ void setup() {
     // initialize sound device (if necessary)
     twangInitTone();
 
-		FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, user_settings.led_count);
-		
+    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, user_settings.led_count);
+
     FastLED.setBrightness(user_settings.led_brightness);
     FastLED.setDither(1);	
 
-    // Life LEDs
-    #ifdef USE_LIFELEDS
-    for(uint8_t i = 0; i<LIFE_LEDS; i++){
-        pinMode(pgm_read_byte_near(lifeLEDs[i]), OUTPUT);
-        digitalWrite(pgm_read_byte_near(lifeLEDs[i]), HIGH);
-    }
-    #endif
-    
+    ScreenSaverMgr screenSaverMgr = ScreenSaverMgr();
+
     stage = STARTUP;
-    stageStartTime = millis();
-    lives = user_settings.lives_per_level;	
 }
 
 void loop() {
     long mm = millis();
+<<<<<<< HEAD
 	
     while(Serial.available()) {  // see if there are someone is trying to edit settings via serial port
         processSerial(Serial.read());				
 	  }
-    
+
     if (mm - previousMillis >= MIN_REDRAW_INTERVAL) {
         getInput();
 		
@@ -272,7 +265,11 @@ void loop() {
             FastLED.clear();
             tickDie(mm);
             if(!tickParticles()){
-                loadLevel();
+                if(lives == 0){
+                    gameOver();
+                } else {
+                    loadLevel();
+                }
             }
         }else if(stage == WIN){
             // LEVEL COMPLETE   
@@ -300,11 +297,11 @@ void loop() {
 // ---------------------------------
 // ------------ LEVELS -------------
 // ---------------------------------
-void loadLevel(){    	
+void loadLevel(){
 	// leave these alone
 	FastLED.setBrightness(user_settings.led_brightness);
 	updateLives();
-  cleanupLevel();    
+  cleanupLevel();
   playerAlive = 1;
 	lastLevel = false; // this gets changed on the boss level
 	
@@ -371,12 +368,12 @@ void loadLevel(){
 	*/
     switch(levelNumber){
         case 0: // basic introduction 
-            playerPosition = 200;			
-            spawnEnemy(1, 0, 0, 0);					
+            playerPosition = 200;
+            spawnEnemy(1, 0, 0, 0);
             break;
         case 1:
-            // Slow moving enemy			
-            spawnEnemy(900, 0, 1, 0);				
+            // Slow moving enemy
+            spawnEnemy(900, 0, 1, 0);
             break;
         case 2:
             // Spawning enemies at exit every 2 seconds
@@ -425,8 +422,8 @@ void loadLevel(){
             spawnEnemy(800, 0, 0, 0);
             spawnEnemy(900, 0, 0, 0);
             break;
-        case 9:   // spawn train;		
-            spawnPool[0].Spawn(900, 1300, 2, 0, 0);					
+        case 9:   // spawn train;
+            spawnPool[0].Spawn(900, 1300, 2, 0, 0);
             break;
         case 10:   // spawn train skinny attack width;
             attack_width = 32;
@@ -438,9 +435,9 @@ void loadLevel(){
             break;
         case 12: // split spawner with exit blocking lava
             spawnPool[0].Spawn(500, 1200, 2, 0, 0);
-            spawnPool[1].Spawn(500, 1200, 2, 1, 0);		
+            spawnPool[1].Spawn(500, 1200, 2, 1, 0);
             spawnLava(900, 950, 2200, 800, 2000, Lava::OFF);
-			      break;
+	    break;
         case 13:
             // Lava run
             spawnLava(195, 300, 2000, 2000, 0, Lava::OFF);
@@ -460,7 +457,7 @@ void loadLevel(){
             // Sin enemy #2 (fast conveyor)
             spawnEnemy(800, 1, 7, 275);
             spawnEnemy(700, 1, 7, 275);
-            spawnEnemy(500, 1, 5, 250);			
+            spawnEnemy(500, 1, 5, 250);
             spawnPool[0].Spawn(1000, 3000, 4, 0, 3000);
             spawnPool[1].Spawn(0, 5500, 5, 1, 10000);
             spawnConveyor(100, 900, -6);
@@ -512,8 +509,8 @@ void moveBoss(){
 
    The following spawn functions add items to pools by looking for an inactive
    item in the pool. You can only add as many as the ..._COUNT. Additional attempts 
-   to add will be ignored.   
-   
+   to add will be ignored.
+
    ==============================================================================
 */
 void spawnEnemy(int pos, bool dir, uint8_t speed, uint8_t wobble){
@@ -563,23 +560,32 @@ void cleanupLevel(){
     boss.Kill();
 }
 
+void startGame() {
+    levelNumber = -1;
+    lastInputTime = millis();
+    stage = Stage::WIN;
+    lives = 3;
+    digitalWrite(startLed, LOW);
+    cleanupLevel();
+}
+
 void levelComplete(){
     stageStartTime = millis();
     stage = WIN;
     //if(levelNumber == LEVEL_COUNT){
     if (lastLevel) {
-		stage = BOSS_KILLED;
-	}
-	if (levelNumber != 0)  // no points for the first level
-	{			
-		score = score + (lives * 10);  // 
-	}    
+        stage = BOSS_KILLED;
+    }
+    if (levelNumber != 0)  // no points for the first level
+    {
+        score = score + (lives * 10);  //
+    }
 }
 
-void nextLevel(){	
-	
+void nextLevel(){
+
     levelNumber ++;
-    if(lastLevel)		
+    if(lastLevel)
         levelNumber = 0;
     lives = user_settings.lives_per_level;
     loadLevel();
@@ -591,22 +597,22 @@ void gameOver(){
     loadLevel();
 }
 
-void die(){	
+void die(){
     playerAlive = 0;
     if(levelNumber > 0) 
-		lives--;
-    
+        lives--;
+
     if(lives == 0){
        stage = GAMEOVER;
        stageStartTime = millis();
     }
     else
     {
-      for(uint8_t p = 0; p < PARTICLE_COUNT; p++){
-          particlePool[p].Spawn(playerPosition);
-      }
-      stageStartTime = millis();
-      stage = DEAD;
+        for(uint8_t p = 0; p < PARTICLE_COUNT; p++){
+            particlePool[p].Spawn(playerPosition);
+        }
+        stageStartTime = millis();
+        stage = DEAD;
     }
     killTime = millis();
 }
@@ -857,7 +863,7 @@ void tickDie(long mm) { // a short bright explosion...particles persist after it
     if(stageStartTime+duration > mm) {// Spread red from player position up and down the width
 
         uint8_t brightness = map((mm-stageStartTime), 0, duration, 255, 50); // this allows a fade from white to red
-		
+
         // fill up
         int n = max(map(((mm-stageStartTime)), 0, duration, getLED(playerPosition), getLED(playerPosition)+width), 0);
         for(int i = getLED(playerPosition); i<= n; i++){
@@ -929,7 +935,7 @@ void drawLives()
     // show how many lives are left by drawing a short line of green leds for each life
     SFXcomplete();  // stop any sounds
     FastLED.clear();
-    
+
     int pos = 0;
     for (uint8_t i = 0; i < lives; i++)
     {
@@ -997,42 +1003,20 @@ void updateLives(){
            digitalWrite(pgm_read_byte_near(lifeLEDs[i]), lives>i?HIGH:LOW);
         }
     #endif
-    
+
     drawLives();
 }
 
 // ---------------------------------
 // --------- SCREENSAVER -----------
 // ---------------------------------
-void screenSaverTick(){
-    int n, b, c, i;
-    long mm = millis();
-    int mode = (mm/30000)%5;
 
+int screenSaverLedTick = 0;
+
+void screenSaverTick(){
     SFXcomplete(); // make sure there is not sound...play testing showed this to be a problem
 
-    for(i = 0; i<user_settings.led_count; i++){
-        leds[i].nscale8(250);
-    }
-    if(mode == 0){
-        // Marching green <> orange
-        n = (mm/250)%10;
-        b = 10+((sin(mm/500.00)+1)*20.00);
-        c = 20+((sin(mm/5000.00)+1)*33);
-        for(i = 0; i<user_settings.led_count; i++){
-            if(i%10 == n){
-                leds[i] = CHSV( c, 255, 150);
-            }
-        }
-    }else if(mode >= 1){
-        // Random flashes
-        randomSeed(mm);
-        for(i = 0; i<user_settings.led_count; i++){
-            if(random8(20) == 0){
-                leds[i] = CHSV( 25, 255, 100);
-            }
-        }
-    }
+    screenSaverMgr.Tick();
 }
 
 // ---------------------------------
@@ -1076,13 +1060,13 @@ void getInput(){
    This is used sweep across (up or down) a frequency range for a specified duration.
    A sin based warble is added to the frequency. This function is meant to be called
    on each frame to adjust the frequency in sync with an animation
-   
+
    duration     = over what time period is this mapped
    elapsedTime  = how far into the duration are we in
    freqStart    = the beginning frequency
    freqEnd      = the ending frequency
    warble       = the amount of warble added (0 disables)
-   
+
 
 */
 void SFXFreqSweepWarble(int duration, int elapsedTime, int freqStart, int freqEnd, int warble)
@@ -1095,11 +1079,11 @@ void SFXFreqSweepWarble(int duration, int elapsedTime, int freqStart, int freqEn
 }
 
 /*
-   
+
    This is used sweep across (up or down) a frequency range for a specified duration.
    Random noise is optionally added to the frequency. This function is meant to be called
    on each frame to adjust the frequency in sync with an animation
-   
+
    duration     = over what time period is this mapped
    elapsedTime  = how far into the duration are we in
    freqStart    = the beginning frequency
@@ -1183,8 +1167,3 @@ void showSetupInfo()
     Serial.print(F("\r\nTWANG VERSION: ")); Serial.println(F(VERSION));
     show_settings_menu();
 }
-
-
-
-
-
