@@ -1,11 +1,10 @@
 
 #include "ScreenSaverMgr.h"
 #include "Arduino.h"
-
 #include "FastLED.h"
-#include "defines.h"
+#include "boards.h"
 
-extern CRGB leds[NUM_LEDS];
+extern CRGB leds[MAX_LEDS];
 
 // Screensavers
 #include "ScrSvrPulseFlashes.h"
@@ -32,7 +31,7 @@ ScreenSaverMgr::ScreenSaverMgr()
 void ScreenSaverMgr::Tick()
 {
     long mm = millis();
-    int mode = (mm/SCREEN_SAVER_DURATION)%_screenSaverCount;
+    uint8_t mode = (mm/SCREEN_SAVER_DURATION)%_screenSaverCount;
     long modeTime = mm%SCREEN_SAVER_DURATION;
 
     _mode = mode;

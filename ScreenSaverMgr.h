@@ -1,6 +1,9 @@
 
 
 #include "ScreenSaver.h"
+#include <stdint.h>
+
+#define SCREEN_SAVER_DURATION 10000 // Duration every screen saver will run (ms)
 
 class ScreenSaverMgr
 {
@@ -9,9 +12,9 @@ class ScreenSaverMgr
     void Tick();
 
   private:
-    int _mode;    
+    uint8_t _mode;    
     ScreenSaver** _screenSavers;
-    int _screenSaverCount;
+    uint8_t _screenSaverCount;
 };
 
 

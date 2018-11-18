@@ -21,7 +21,7 @@
     Pins A5         Gyroscope SCL
 
 */
-#define VERSION "2018-10-04"
+#define VERSION "2018-11-18"
 
 // Required libs
 #include "FastLED.h"
@@ -29,6 +29,7 @@
 #include "MPU6050.h"
 #include "Wire.h"
 #include "iSin.h"
+#include "RunningMedian.h"
 
 #include <stdint.h> // uint8_t type variables
 
@@ -95,8 +96,8 @@ uint8_t lives;
 bool lastLevel = false;
 
 #ifdef USE_LIFELEDS
-	#define LIFE_LEDS 3
-	const PROGMEM int lifeLEDs[LIFE_LEDS] = {7, 6, 5}; // these numbers are Arduino GPIO numbers...this is not used in the B. Dring enclosure design
+    #define LIFE_LEDS 3
+    const PROGMEM int lifeLEDs[LIFE_LEDS] = {7, 6, 5}; // these numbers are Arduino GPIO numbers...this is not used in the B. Dring enclosure design
 #endif
 
 
@@ -150,6 +151,8 @@ CRGB leds[MAX_LEDS]; // this is set to the max, but the actual number used is se
 RunningMedian<int,5> MPUAngleSamples;
 RunningMedian<int,5> MPUWobbleSamples;
 
+ScreenSaverMgr screenSaverMgr = ScreenSaverMgr();
+
 void setup() {
 
     Serial.begin(115200);
@@ -175,7 +178,6 @@ void setup() {
 
 void loop() {
     long mm = millis();
-<<<<<<< HEAD
 	
     while(Serial.available()) {  // see if there are someone is trying to edit settings via serial port
         processSerial(Serial.read());				
@@ -558,15 +560,6 @@ void cleanupLevel(){
         conveyorPool[i].Kill();
     }
     boss.Kill();
-}
-
-void startGame() {
-    levelNumber = -1;
-    lastInputTime = millis();
-    stage = Stage::WIN;
-    lives = 3;
-    digitalWrite(startLed, LOW);
-    cleanupLevel();
 }
 
 void levelComplete(){

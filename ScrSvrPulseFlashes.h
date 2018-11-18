@@ -10,21 +10,21 @@ class ScrSvrPulseFlashes: public ScreenSaver
 void ScrSvrPulseFlashes::Tick(long millis)
 {
     int n, b, i;
-    for(i = 0; i<NUM_LEDS; i++)
+    for(i = 0; i<MAX_LEDS; i++)
     {
         leds[i].fadeToBlackBy(128);
-    }            
-    randomSeed(millis);            
+    }
+    randomSeed(millis);
     b = millis%800;
-    if (b < 240) 
+    if (b < 240)
     {
         n = 121 - b/2;
-    } 
-    else 
+    }
+    else
     {
         n = 1;
     }
-    for(i = 0; i<NUM_LEDS; i++)
+    for(i = 0; i<MAX_LEDS; i++)
     {
         if ((random8() <= n)) 
         {

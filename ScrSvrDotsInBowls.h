@@ -12,7 +12,7 @@ void ScrSvrDotsInBowls::Tick(long millis)
     const uint8_t dotsInBowlsCount = 3;
     const uint16_t dotDistance = 65535/dotsInBowlsCount;
 
-    for (int i = 0; i < NUM_LEDS; i ++)
+    for (int i = 0; i < MAX_LEDS; i ++)
     {
         leds[i] = CRGB::Black;
     }
@@ -20,7 +20,7 @@ void ScrSvrDotsInBowls::Tick(long millis)
     for (int i = 0; i < dotsInBowlsCount; i ++)
     {
         long k = ((i*dotDistance) + millis*dotspeed);
-        int dotPosition = map(sin16_avr(k),-32767,32767,2,NUM_LEDS-3);
+        int dotPosition = map(sin16_avr(k),-32767,32767,2,MAX_LEDS-3);
         Draw(
             dotPosition,
             (uint8_t) (k % 255)
@@ -29,9 +29,9 @@ void ScrSvrDotsInBowls::Tick(long millis)
 }
 void ScrSvrDotsInBowls::Draw(int pos, uint8_t hue)
 {
-    leds[pos-2] += CHSV(hue, 255, BRIGHTNESS/4);
-    leds[pos-1] += CHSV(hue, 255, BRIGHTNESS/2);
-    leds[pos]   += CHSV(hue, 255, BRIGHTNESS);
-    leds[pos+1] += CHSV(hue, 255, BRIGHTNESS/2);
-    leds[pos+2] += CHSV(hue, 255, BRIGHTNESS/4);
+    leds[pos-2] += CHSV(hue, 255, MAX_LEDS/4);
+    leds[pos-1] += CHSV(hue, 255, MAX_LEDS/2);
+    leds[pos]   += CHSV(hue, 255, MAX_LEDS);
+    leds[pos+1] += CHSV(hue, 255, MAX_LEDS/2);
+    leds[pos+2] += CHSV(hue, 255, MAX_LEDS/4);
 } 

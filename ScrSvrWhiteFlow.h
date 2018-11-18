@@ -9,7 +9,7 @@ void ScrSvrWhiteFlow::Tick(long millis)
 {
     int i;
 
-    for (i = 0; i < NUM_LEDS; i ++)
+    for (i = 0; i < MAX_LEDS; i ++)
     {
         if (((i+(int)(millis/100))%5)==0)
         {
