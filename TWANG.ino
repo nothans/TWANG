@@ -161,7 +161,7 @@ void setup() {
 
     // MPU
     Wire.begin();
-    accelgyro.initialize();	
+    accelgyro.initialize();
 
     // initialize sound device (if necessary)
     twangInitTone();
@@ -176,14 +176,14 @@ void setup() {
 
 void loop() {
     long mm = millis();
-	
+
     while(Serial.available()) {  // see if there are someone is trying to edit settings via serial port
-        processSerial(Serial.read());				
-	  }
+        processSerial(Serial.read());
+    }
 
     if (mm - previousMillis >= MIN_REDRAW_INTERVAL) {
         getInput();
-		
+
         long frameTimer = mm;
         previousMillis = mm;
 
@@ -196,16 +196,16 @@ void loop() {
             }
         }else{
             if(lastInputTime+TIMEOUT < mm){
-				
+
                 stage = SCREENSAVER;
             }
         }
         if(stage == SCREENSAVER){
             screenSaverTick();
-		
+
         }else if(stage == STARTUP){
             if (stageStartTime+STARTUP_FADE_DUR > mm)
-				        tickStartup(mm);
+                tickStartup(mm);
             else
             {
                 SFXcomplete();
@@ -214,17 +214,18 @@ void loop() {
             }
         }else if(stage == PLAY){
             // PLAYING
-            if(attacking && attackMillis+ATTACK_DURATION < mm) attacking = 0;		
-    			
+            if(attacking && attackMillis+ATTACK_DURATION < mm)
+                attacking = 0;
+
             if (attacking)
-    				    SFXattacking();			
-    
+                SFXattacking();
+
             // If not attacking, check if they should be
             if(!attacking && joystickWobble > user_settings.attack_threshold){
                 attackMillis = mm;
                 attacking = 1;
             }
-    
+
             // If still not attacking, move!
             playerPosition += playerPositionModifier;
             if(!attacking){
@@ -237,7 +238,7 @@ void loop() {
                 // stop player from leaving if boss is alive
                 if (boss.Alive() && playerPosition >= VIRTUAL_WORLD_COUNT) // move player back
                     playerPosition = VIRTUAL_WORLD_COUNT - 1;
-    
+
                 if(playerPosition >= VIRTUAL_WORLD_COUNT && !boss.Alive()) {
                     // Reached exit!
                     levelComplete();
@@ -248,7 +249,7 @@ void loop() {
             if(inLava(playerPosition)){
                 die();
             }
-    
+
             // Ticks and draw calls
             FastLED.clear();
             tickConveyors();
@@ -260,8 +261,8 @@ void loop() {
             drawAttack();
             drawExit();
         }else if(stage == DEAD){
-            // DEAD			
-            SFXdead();			
+            // DEAD
+            SFXdead();
             FastLED.clear();
             tickDie(mm);
             if(!tickParticles()){
@@ -272,10 +273,10 @@ void loop() {
                 }
             }
         }else if(stage == WIN){
-            // LEVEL COMPLETE   
+            // LEVEL COMPLETE
             tickWin(mm);
         }else if(stage == BOSS_KILLED){
-            tickBossKilled(mm);            
+            tickBossKilled(mm);
         } else if (stage == GAMEOVER) {
             if (stageStartTime+GAMEOVER_FADE_DURATION > mm)
             {
@@ -283,7 +284,7 @@ void loop() {
             }
             else
             {
-                FastLED.clear();	
+                FastLED.clear();
                 levelNumber = 0;
                 lives = user_settings.lives_per_level;
                 loadLevel();
@@ -437,7 +438,7 @@ void loadLevel(){
             spawnPool[0].Spawn(500, 1200, 2, 0, 0);
             spawnPool[1].Spawn(500, 1200, 2, 1, 0);
             spawnLava(900, 950, 2200, 800, 2000, Lava::OFF);
-	    break;
+        break;
         case 13:
             // Lava run
             spawnLava(195, 300, 2000, 2000, 0, Lava::OFF);
@@ -732,10 +733,10 @@ void tickLava(){
     int A, B, p;
     uint8_t i, brightness, flicker;
     long mm = millis();
-		const uint8_t lava_off_brightness = WS2812_LAVA_OFF_BRIGHTNESS;
+    const uint8_t lava_off_brightness = WS2812_LAVA_OFF_BRIGHTNESS;
 
     Lava LP;
-    for(i = 0; i<LAVA_COUNT; i++){        
+    for(i = 0; i<LAVA_COUNT; i++){
         LP = lavaPool[i];
         if(LP.Alive()){
             A = getLED(LP._left);
@@ -791,10 +792,10 @@ void tickConveyors(){
     uint8_t speed, i;
     long m = 10000+millis();
     playerPositionModifier = 0;
-		const uint8_t conveyor_brightness = WS2812_CONVEYOR_BRIGHTNES;
-	
-    uint8_t levels = 5; // brightness levels in conveyor 	
-	
+    const uint8_t conveyor_brightness = WS2812_CONVEYOR_BRIGHTNES;
+
+    uint8_t levels = 5; // brightness levels in conveyor
+
 
     for(i = 0; i<CONVEYOR_COUNT; i++){
         if(conveyorPool[i]._alive){
@@ -802,11 +803,11 @@ void tickConveyors(){
             ss = getLED(conveyorPool[i]._startPoint);
             ee = getLED(conveyorPool[i]._endPoint);
             for(led = ss; led<ee; led++){
-                
+
                 n = (-led + (m/100)) % levels;
                 if(speed < 0) 
                     n = (led + (m/100)) % levels;
-				
+
                 b = map(n, 5, 0, 0, conveyor_brightness);
                 if(b > 0) 
                     leds[led] = CRGB(0, 0, b);
@@ -821,13 +822,13 @@ void tickConveyors(){
 
 void tickBossKilled(long mm) // boss funeral
 {
-    static uint8_t gHue = 0; 
-	
+    static uint8_t gHue = 0;
+
     FastLED.setBrightness(255); // super bright!
-	
+
     uint8_t brightness = 0;
     FastLED.clear();	
-	
+
     if(stageStartTime+6500 > mm){
         gHue++;
         fill_rainbow( leds, user_settings.led_count, gHue, 7); // FastLED's built in rainbow
@@ -978,7 +979,7 @@ bool inLava(int pos){
 }
 
 void initLifeLEDs(){
-#ifdef USE_LIFELEDS  
+#ifdef USE_LIFELEDS
     // Life LEDs
     for(uint8_t i = 0; i<LIFE_LEDS; i++){
         pinMode(pgm_read_byte_near(lifeLEDs[i]), OUTPUT);
@@ -1230,7 +1231,7 @@ int map_constrain(int x, int in_min, int in_max, int out_min, int out_max)
     else {
         x = constrain(x, in_max, in_min);
     }
-    
+
     return map(x, in_min, in_max, out_min, out_max);
 }
 
