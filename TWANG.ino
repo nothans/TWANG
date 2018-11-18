@@ -8,6 +8,8 @@
   Additional contributions from:
   - bdring (serial menu, more levels)
   - dskw (more levels)
+  - fablab-muenchen (screensaver rework)
+  - chess9876543210 (more screensavers)
 
 
   Ported to the Arduino Nano by nuess0r
@@ -21,7 +23,7 @@
     Pins A5         Gyroscope SCL
 
 */
-#define VERSION "2018-10-04"
+#define VERSION "2018-11-18"
 
 // Required libs
 #include "FastLED.h"
@@ -1005,31 +1007,90 @@ void updateLives(){
 // --------- SCREENSAVER -----------
 // ---------------------------------
 void screenSaverTick(){
-    int n, b, c, i;
+    int n, c, i;
     long mm = millis();
-    int mode = (mm/30000)%5;
+    uint8_t mode = (mm/30000)%5;
 
     SFXcomplete(); // make sure there is not sound...play testing showed this to be a problem
 
-    for(i = 0; i<user_settings.led_count; i++){
-        leds[i].nscale8(250);
-    }
     if(mode == 0){
         // Marching green <> orange
+        for(i = 0; i<user_settings.led_count; i++){
+            leds[i].nscale8(250);
+        }
+
         n = (mm/250)%10;
-        b = 10+((sin(mm/500.00)+1)*20.00);
         c = 20+((sin(mm/5000.00)+1)*33);
         for(i = 0; i<user_settings.led_count; i++){
             if(i%10 == n){
                 leds[i] = CHSV( c, 255, 150);
             }
         }
-    }else if(mode >= 1){
+    }else if(mode == 1){
         // Random flashes
+        for(i = 0; i<user_settings.led_count; i++){
+            leds[i].nscale8(250);
+        }
         randomSeed(mm);
         for(i = 0; i<user_settings.led_count; i++){
             if(random8(20) == 0){
                 leds[i] = CHSV( 25, 255, 100);
+            }
+        }
+    }else if(mode == 2){
+        const uint8_t dotspeed = 22;
+        const uint8_t dotsInBowlsCount = 3;
+        const uint16_t dotDistance = 65535/dotsInBowlsCount;
+        const uint8_t dotBrightness = 255;
+
+        for (i = 0; i < user_settings.led_count; i ++)
+        {
+            leds[i] = CRGB::Black;
+        }
+
+        for (i = 0; i < dotsInBowlsCount; i ++)
+        {
+            mm = ((i*dotDistance) + millis()*dotspeed);
+            n = map(sin16_avr(mm),-32767,32767,2,user_settings.led_count-3);
+            c = mm % 255;
+            leds[n-2] += CHSV(c, 255, dotBrightness/4);
+            leds[n-1] += CHSV(c, 255, dotBrightness/2);
+            leds[n]   += CHSV(c, 255, dotBrightness);
+            leds[n+1] += CHSV(c, 255, dotBrightness/2);
+            leds[n+2] += CHSV(c, 255, dotBrightness/4);
+        }
+    }else if(mode == 3){
+        for(i = 0; i<user_settings.led_count; i++)
+        {
+            leds[i].fadeToBlackBy(128);
+        }
+        randomSeed(mm);
+        c = mm%800;
+        if (c < 240)
+        {
+            n = 121 - c/2;
+        }
+        else
+        {
+            n = 1;
+        }
+        for(i = 0; i<user_settings.led_count; i++)
+        {
+            if ((random8() <= n))
+            {
+                leds[i] = CRGB(100,100,100);
+            }
+        }
+    }else if(mode >= 4){
+        for (i = 0; i < user_settings.led_count; i ++)
+        {
+            if (((i+(int)(mm/100))%5)==0)
+            {
+                leds[i] = CRGB(100,100,100);
+            }
+            else
+            {
+                leds[i] = CRGB::Black;
             }
         }
     }
