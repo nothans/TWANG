@@ -31,9 +31,19 @@ Features:
 * MPU6050 accelerometer
 * Spring doorstop, I used [these](http://smile.amazon.com/gp/product/B00J4Y5BU2)
 
-See [Buildlog.net Blog](http://www.buildlog.net/blog?s=twang) for more details.
+## Connection for Arduino Nano
 
-![](http://www.buildlog.net/blog/wp-content/uploads/2018/04/20180416_103412.jpg)
+    Arduino Nano:   Connect to:
+    Pin  D2         LED data pin
+    Pin  D3         LED clock pin (not used for WS2812)
+    Pins D5 & 6 & 7 Life LEDs
+    Pins D9 & 10    Loudspeaker (Connect a 100 to 200 Ohm resistor in series to one pin)
+    Pin  A4         Gyroscope SDA
+    Pin  A5         Gyroscope SCL
+    Pin  Vin        Voltage input from LED power supply
+    Pin  5V         Voltage output to gyroscope
+    Pin  GND        Ground from power supply and to gyroscope
+
 
 ## Enclosure
 Files to print the original enclosure and controller knob can be found [here](http://www.thingiverse.com/thing:1116899)
