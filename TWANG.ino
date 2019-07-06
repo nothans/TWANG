@@ -514,7 +514,7 @@ void moveBoss(){
 
    ==============================================================================
 */
-void spawnEnemy(int pos, bool dir, uint8_t speed, uint8_t wobble){
+void spawnEnemy(int pos, bool dir, uint8_t speed, uint16_t wobble){
     for(uint8_t e = 0; e<ENEMY_COUNT; e++){  // look for one that is not alive for a place to add one
         if(!enemyPool[e].Alive()){
             enemyPool[e].Spawn(pos, dir, speed, wobble);
