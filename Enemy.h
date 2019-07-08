@@ -5,12 +5,12 @@
 class Enemy
 {
   public:
-    void Spawn(int pos, bool dir, uint8_t speed, uint8_t wobble);
+    void Spawn(int pos, bool dir, uint8_t speed, uint16_t wobble);
     void Tick();
     void Kill();
     bool Alive();
     int _pos;
-    uint8_t _wobble;
+    uint16_t _wobble;
     uint8_t playerSide;
   private:
     bool _dir;
@@ -19,7 +19,7 @@ class Enemy
     int _origin;
 };
 
-void Enemy::Spawn(int pos, bool dir, uint8_t speed, uint8_t wobble){
+void Enemy::Spawn(int pos, bool dir, uint8_t speed, uint16_t wobble){
     _pos = pos;
     _dir = dir;          // 0 = left, 1 = right
     _wobble = wobble;    // 0 = no, >0 = yes, value is width of wobble
