@@ -1,40 +1,30 @@
 /* 
   TWANG 
 
-  Based on original code by Critters/TWANG
+  Based on the orginal TWANG project by "critters"
 
   https://github.com/Critters/TWANG
 
-  Additional contributions from:
-  - bdring (serial menu, more levels)
+  Additional contributions:
+  - bdring (serial settings menu, more levels)
   - dskw (more levels)
   - fablab-muenchen (screensaver rework)
   - chess9876543210 (more screensavers)
-
-  Ported to the Arduino Nano by nuess0r
-
-  CONNECTION for Arduino Nano:
-    Pins D2         LED data pin
-    Pins D3         LED clock pin
-    Pins D5 & 6 & 7 Life LEDs
-    Pins D9 & 10    Loudspeaker
-    Pins A4         Gyroscope SDA
-    Pins A5         Gyroscope SCL
+  - nuess0r (Arduino Nano support)
 
 */
 
 #define VERSION "2019-11-24 A"
 
-// Required libs
+// Required libraries
 #include "FastLED.h"
 #include "I2Cdev.h"
 #include "MPU6050.h"
 #include "Wire.h"
 #include "RunningMedian.h"
-
 #include <stdint.h> // uint8_t type variables
 
-// Included libs
+// Included libraries
 #include "Enemy.h"
 #include "Particle.h"
 #include "Spawner.h"
@@ -43,8 +33,7 @@
 #include "Conveyor.h"
 #include "settings.h"
 
-
-// what type of sound device ....pick one
+// SOUND
 #define USE_TONEAC
 
 #if defined(USE_TONEAC)
@@ -60,17 +49,21 @@
 #define twangStopTone()                   do {} while(0)
 #endif
 
-// GAME
-long previousMillis = 0;           // Time of the last redraw
-uint8_t levelNumber = 0;
+// LIGHT
+CRGB leds[MAX_LEDS];
 
-int8_t joystickTilt = 0;              // Stores the angle of the joystick
+// JOYSTICK
+int8_t joystickTilt = 0;           // Stores the angle of the joystick
 int joystickWobble = 0;            // Stores the max amount of wobble
 
 // WOBBLE ATTACK
 uint8_t attack_width = DEFAULT_ATTACK_WIDTH;
 long attackMillis = 0;             // Time the attack started
 bool attacking = 0;                // Is the attack in progress?
+
+// GAME
+long previousMillis = 0;           // Time of the last redraw
+uint8_t levelNumber = 0;
 
 enum stages {
 	STARTUP,
@@ -92,11 +85,12 @@ long killTime;
 uint8_t lives;
 bool lastLevel = false;
 
+// Life LEDs
+// #define USE_LIFELEDS
 #ifdef USE_LIFELEDS
     #define LIFE_LEDS 3
-    const PROGMEM int lifeLEDs[LIFE_LEDS] = {7, 6, 5}; // these numbers are Arduino GPIO numbers...this is not used in the B. Dring enclosure design
+    const PROGMEM int lifeLEDs[LIFE_LEDS] = {7, 6, 5};
 #endif
-
 
 // POOLS
 #define ENEMY_COUNT 10
@@ -125,32 +119,33 @@ Conveyor conveyorPool[CONVEYOR_COUNT];
 
 Boss boss = Boss();
 
-// MPU
+// MPU6050 accelerometer
 MPU6050 accelgyro;
-
-CRGB leds[MAX_LEDS]; // this is set to the max, but the actual number used is set in FastLED.addLeds below
 RunningMedian<int,5> MPUAngleSamples;
 RunningMedian<int,5> MPUWobbleSamples;
 
 
 void setup() {
 
+    // Start serial connection and show setup
     Serial.begin(115200);
     settings_eeprom_read();
     showSetupInfo();
 
-    // MPU
+    // MPU6050 accelerometer
     Wire.begin();
     accelgyro.initialize();
 
-    // initialize sound device (if necessary)
+    // Initialize sound device
     twangInitTone();
 
+    // Setup LEDs
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, user_settings.led_count);
 
     FastLED.setBrightness(user_settings.led_brightness);
     FastLED.setDither(1);
 
+    // Reset stage
     stage = STARTUP;
 }
 
