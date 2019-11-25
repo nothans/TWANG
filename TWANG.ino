@@ -100,50 +100,34 @@ bool lastLevel = false;
 
 // POOLS
 #define ENEMY_COUNT 10
-Enemy enemyPool[ENEMY_COUNT] = {
-    Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy(), Enemy()
-};
+Enemy enemyPool[ENEMY_COUNT];
 
 #if defined(ARDUINO_AVR_MEGA2560)
-// Arduino Mega 2560
 #define PARTICLE_COUNT 40
-Particle particlePool[PARTICLE_COUNT] = {
-    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(),
-    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(),
-    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(),
-    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle()
-};
+Particle particlePool[PARTICLE_COUNT];
+
 #elif defined(ARDUINO_AVR_NANO)
 #define PARTICLE_COUNT 24
-Particle particlePool[PARTICLE_COUNT] = {
-    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(),
-    Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(), Particle(),
-    Particle(), Particle(), Particle(), Particle()
-};
+Particle particlePool[PARTICLE_COUNT];
+
 #else
 #error "Please define size of particle pool for your board."
 #endif
 
-
 #define SPAWN_COUNT 2
-Spawner spawnPool[SPAWN_COUNT] = {
-    Spawner(), Spawner()
-};
+Spawner spawnPool[SPAWN_COUNT];
 
 #define LAVA_COUNT 4
-Lava lavaPool[LAVA_COUNT] = {
-    Lava(), Lava(), Lava(), Lava()
-};
+Lava lavaPool[LAVA_COUNT];
 
 #define CONVEYOR_COUNT 2
-Conveyor conveyorPool[CONVEYOR_COUNT] = {
-    Conveyor(), Conveyor()
-};
+Conveyor conveyorPool[CONVEYOR_COUNT];
 
 Boss boss = Boss();
 
 // MPU
 MPU6050 accelgyro;
+
 CRGB leds[MAX_LEDS]; // this is set to the max, but the actual number used is set in FastLED.addLeds below
 RunningMedian<int,5> MPUAngleSamples;
 RunningMedian<int,5> MPUWobbleSamples;
