@@ -11,7 +11,6 @@
   - fablab-muenchen (screensaver rework)
   - chess9876543210 (more screensavers)
 
-
   Ported to the Arduino Nano by nuess0r
 
   CONNECTION for Arduino Nano:
@@ -23,14 +22,14 @@
     Pins A5         Gyroscope SCL
 
 */
-#define VERSION "2018-11-18"
+
+#define VERSION "2019-11-24 A"
 
 // Required libs
 #include "FastLED.h"
 #include "I2Cdev.h"
 #include "MPU6050.h"
 #include "Wire.h"
-#include "iSin.h"
 #include "RunningMedian.h"
 
 #include <stdint.h> // uint8_t type variables
@@ -64,9 +63,6 @@
 // GAME
 long previousMillis = 0;           // Time of the last redraw
 uint8_t levelNumber = 0;
-
-iSin isin = iSin();
-
 
 int8_t joystickTilt = 0;              // Stores the angle of the joystick
 int joystickWobble = 0;            // Stores the max amount of wobble
