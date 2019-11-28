@@ -5,7 +5,7 @@
 /// Defaults
 
 // change this whenever the saved settings are not compatible with a change
-// it force a load from defaults.
+// it forces a load from defaults.
 #define SETTINGS_VERSION 5
 
 // LED Strip Setup
@@ -36,25 +36,25 @@
 #define WS2812_CONVEYOR_BRIGHTNES  40
 #define WS2812_LAVA_OFF_BRIGHTNESS 15
 
-#define USE_LIFELEDS  // uncomment this to make Life LEDs available (not used in the B. Dring enclosure)
+#define USE_LIFELEDS  // Uncomment to make 3 Life LEDs available
 
 // JOYSTICK
 #define JOYSTICK_ORIENTATION 1     // 0, 1 or 2 to set the angle of the joystick
 #define JOYSTICK_DIRECTION   1     // 0/1 to flip joystick direction
 
-#define ATTACK_THRESHOLD     30000 // The threshold that triggers an attack
+#define ATTACK_THRESHOLD         30000 // The threshold that triggers an attack
 #define MIN_ATTACK_THRESHOLD     20000
 #define MAX_ATTACK_THRESHOLD     30000
 
-#define JOYSTICK_DEADZONE    7     // Angle to ignore
+#define JOYSTICK_DEADZONE     7    // Angle to ignore
 #define MIN_JOYSTICK_DEADZONE 3
 #define MAX_JOYSTICK_DEADZONE 12
 
 
 // AUDIO
 #define MAX_VOLUME           10
-#define MIN_VOLUME              0
-#define MAX_VOLUME              10
+#define MIN_VOLUME           0
+#define MAX_VOLUME           10
 
 
 // LEVELS
@@ -436,4 +436,3 @@ void printError(int reason) {
 		break;
 	}
 }
-

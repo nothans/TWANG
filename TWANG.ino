@@ -11,10 +11,11 @@
   - fablab-muenchen (screensaver rework)
   - chess9876543210 (more screensavers)
   - nuess0r (Arduino Nano support)
+  - nothans (Fixed Life LEDs logic)
 
 */
 
-#define VERSION "2019-11-24 A"
+#define VERSION "2019-11-27 A"
 
 // Required libraries
 #include "FastLED.h"
@@ -86,11 +87,7 @@ uint8_t lives;
 bool lastLevel = false;
 
 // Life LEDs
-// #define USE_LIFELEDS
-#ifdef USE_LIFELEDS
-    #define LIFE_LEDS 3
-    const PROGMEM int lifeLEDs[LIFE_LEDS] = {7, 6, 5};
-#endif
+int lifeLEDs[3] = {7, 6, 5}; // Arduino GPIO pin numbers for three Life LEDs
 
 // POOLS
 #define ENEMY_COUNT 10
@@ -132,6 +129,9 @@ void setup() {
     settings_eeprom_read();
     showSetupInfo();
 
+    // Initialize lives
+    lives = user_settings.lives_per_level;
+
     // MPU6050 accelerometer
     Wire.begin();
     accelgyro.initialize();
@@ -139,12 +139,14 @@ void setup() {
     // Initialize sound device
     twangInitTone();
 
-    // Setup LEDs
+    // Setup Game LEDs
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, user_settings.led_count);
-
     FastLED.setBrightness(user_settings.led_brightness);
     FastLED.setDither(1);
 
+    // Setup Life LEDs
+    initLifeLEDs();
+    
     // Reset stage
     stage = STARTUP;
 }
@@ -340,8 +342,8 @@ void loadLevel(){
 		The size of the TWANG attack
 			attack_width = xxx;
 					
-	
 	*/
+  
     switch(levelNumber){
         case 0: // basic introduction 
             playerPosition = 200;
@@ -954,24 +956,23 @@ bool inLava(int pos){
 }
 
 void initLifeLEDs(){
-#ifdef USE_LIFELEDS
-    // Life LEDs
-    for(uint8_t i = 0; i<LIFE_LEDS; i++){
-        pinMode(pgm_read_byte_near(lifeLEDs[i]), OUTPUT);
-        digitalWrite(pgm_read_byte_near(lifeLEDs[i]), HIGH);
-    }
-#endif
+  #if defined(USE_LIFELEDS)
+      for(uint8_t i = 0; i<3; i++){
+          pinMode(lifeLEDs[i], OUTPUT);
+          digitalWrite(lifeLEDs[i], HIGH);
+      }
+  #endif
 }
 
 void updateLives(){
-    #ifdef USE_LIFELEDS
-        // Updates the life LEDs to show how many lives the player has left
-        for(uint8_t i = 0; i<LIFE_LEDS; i++){
-           digitalWrite(pgm_read_byte_near(lifeLEDs[i]), lives>i?HIGH:LOW);
-        }
-    #endif
+  #if defined(USE_LIFELEDS)
+      // Updates the life LEDs to show how many lives the player has left
+      for(uint8_t i = 0; i<3; i++){
+         digitalWrite(lifeLEDs[i], lives>i?HIGH:LOW);
+      }
+  #endif
 
-    drawLives();
+  drawLives(); // Show lives on LED strip at the start of a level
 }
 
 // ---------------------------------
@@ -1115,7 +1116,6 @@ void getInput(){
    freqEnd      = the ending frequency
    warble       = the amount of warble added (0 disables)
 
-
 */
 void SFXFreqSweepWarble(int duration, int elapsedTime, int freqStart, int freqEnd, int warble)
 {
@@ -1137,7 +1137,6 @@ void SFXFreqSweepWarble(int duration, int elapsedTime, int freqStart, int freqEn
    freqStart    = the beginning frequency
    freqEnd      = the ending frequency
    noiseFactor  = the amount of noise to added/subtracted (0 disables)
-
 
 */
 void SFXFreqSweepNoise(int duration, int elapsedTime, int freqStart, int freqEnd, uint8_t noiseFactor)
